@@ -1,0 +1,2324 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#0078d4">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Health Diary">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<script>
+if ('serviceWorker' in navigator) {
+  const manifest = {
+    name: "Health Diary",
+    short_name: "Health Diary",
+    start_url: "/",
+    display: "standalone",
+    background_color: "#0078d4",
+    theme_color: "#0078d4",
+    icons: [{
+      src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='80' fill='%230078d4'/%3E%3Crect x='244' y='60' width='24' height='392' rx='12' fill='%23fff'/%3E%3Cpath d='M 256 90 C 310 110 320 150 256 170 C 192 190 202 230 256 250 C 310 270 320 310 256 330 C 192 350 202 390 256 410' fill='none' stroke='%23ffd700' stroke-width='22' stroke-linecap='round'/%3E%3Cellipse cx='256' cy='82' rx='18' ry='22' fill='%23ffd700'/%3E%3Ccircle cx='250' cy='75' r='4' fill='%230078d4'/%3E%3C/svg%3E",
+      sizes: "any",
+      type: "image/svg+xml",
+      purpose: "any maskable"
+    }]
+  };
+  const blob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('link');
+  link.rel = 'manifest';
+  link.href = url;
+  document.head.appendChild(link);
+}
+</script>
+<title>Health Diary</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Serif+Display&display=swap');
+
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  :root{
+    --bg:#e8edf5;
+    --bg2:#edf1f7;
+    --surface:#edf1f7;
+    --shadow-out:6px 6px 16px #c8cdd8, -6px -6px 16px #ffffff;
+    --shadow-in:inset 4px 4px 10px #c8cdd8, inset -4px -4px 10px #ffffff;
+    --shadow-sm:3px 3px 8px #c8cdd8, -3px -3px 8px #ffffff;
+    --accent:#4a6fa5;
+    --accent2:#6b8fcf;
+    --green:#4caf7d;
+    --red:#e05c6a;
+    --gold:#f0b429;
+    --text:#2d3561;
+    --text2:#6b7494;
+    --text3:#9ba3c0;
+    --radius:18px;
+    --radius-sm:12px;
+  }
+  body{
+    font-family:'DM Sans',system-ui,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    max-width:480px;
+    margin:0 auto;
+    min-height:100vh;
+    position:relative;
+  }
+  .nezet{display:none;flex-direction:column;min-height:100vh}
+  .nezet.aktiv{display:flex}
+
+  /* Topbar */
+  .topbar{
+    background:var(--bg);
+    padding:16px 18px 14px;
+    box-shadow:0 4px 12px rgba(0,0,0,0.06);
+    position:sticky;top:0;z-index:100;
+  }
+  .topbar-sor{display:flex;align-items:center;justify-content:space-between}
+  .vissza-gomb{
+    background:var(--surface);
+    border:none;
+    color:var(--accent);
+    font-weight:600;
+    font-size:15px;
+    cursor:pointer;
+    padding:8px 14px;
+    border-radius:var(--radius-sm);
+    box-shadow:var(--shadow-sm);
+    font-family:inherit;
+  }
+  .topbar-cim{color:var(--text);font-weight:700;font-size:17px}
+  .topbar-jobb{
+    background:var(--accent);
+    border:none;
+    color:#fff;
+    font-weight:600;
+    font-size:13px;
+    border-radius:var(--radius-sm);
+    padding:7px 14px;
+    cursor:pointer;
+    font-family:inherit;
+    box-shadow:3px 3px 8px rgba(74,111,165,0.3);
+  }
+
+  .tartalom{flex:1;overflow-y:auto;padding-bottom:80px}
+
+  /* Cards */
+  .card{
+    background:var(--surface);
+    margin:12px 14px;
+    border-radius:var(--radius);
+    padding:18px;
+    box-shadow:var(--shadow-out);
+  }
+
+  /* Forms */
+  .form-group{margin-bottom:14px}
+  label.form-label{
+    display:block;
+    font-size:12px;
+    font-weight:600;
+    color:var(--text2);
+    margin-bottom:6px;
+    text-transform:uppercase;
+    letter-spacing:0.05em;
+  }
+  input,select,textarea{
+    width:100%;
+    border:none;
+    border-radius:var(--radius-sm);
+    padding:10px 14px;
+    font-size:15px;
+    color:var(--text);
+    background:var(--bg);
+    font-family:inherit;
+    outline:none;
+    box-shadow:var(--shadow-in);
+    transition:box-shadow 0.2s;
+  }
+  input:focus,select:focus,textarea:focus{
+    box-shadow:inset 5px 5px 12px #c0c6d4, inset -5px -5px 12px #ffffff, 0 0 0 2px rgba(74,111,165,0.2);
+  }
+  textarea{height:72px;resize:vertical}
+  .sor2{display:flex;gap:10px}
+  .sor2>div{flex:1}
+  .sor2>div:first-child{flex:2}
+
+  /* Buttons */
+  .gomb{
+    display:block;width:100%;border:none;
+    border-radius:var(--radius-sm);
+    padding:13px 0;font-weight:700;font-size:15px;
+    cursor:pointer;font-family:inherit;text-align:center;
+    transition:all 0.15s;
+  }
+  .gomb:active{transform:scale(0.98)}
+  .gomb-kek{
+    background:linear-gradient(135deg,var(--accent),var(--accent2));
+    color:#fff;
+    box-shadow:4px 4px 12px rgba(74,111,165,0.35), -2px -2px 8px rgba(255,255,255,0.8);
+  }
+  .gomb-piros{
+    background:var(--bg);
+    color:var(--red);
+    box-shadow:var(--shadow-sm);
+    font-size:14px;padding:11px 0;margin-top:8px;
+  }
+
+  /* Info panel */
+  .info-panel{
+    background:var(--bg);
+    border-radius:var(--radius);
+    padding:14px;
+    box-shadow:var(--shadow-in);
+    margin-bottom:14px;
+  }
+  .info-cim{font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px}
+  .info-sor{margin-bottom:8px}
+  .info-sor-cim{font-size:11px;font-weight:600;color:var(--text3);margin-bottom:2px;text-transform:uppercase;letter-spacing:0.04em}
+  .info-sor-ertek{font-size:14px;color:var(--text);line-height:1.5}
+  .mellekhat-lista{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+  .mellekhat-badge{
+    font-size:12px;
+    background:var(--bg);
+    color:var(--gold);
+    border-radius:20px;
+    padding:3px 10px;
+    box-shadow:var(--shadow-sm);
+    font-weight:500;
+  }
+  .figyelmeztet{
+    background:linear-gradient(135deg,rgba(240,180,41,0.1),rgba(240,180,41,0.05));
+    border-radius:var(--radius-sm);
+    padding:10px 12px;
+    border-left:3px solid var(--gold);
+    font-size:13px;color:#7a5c00;line-height:1.5;margin-top:6px;
+  }
+  .info-lablec{font-size:11px;color:var(--text3);font-style:italic;margin-top:8px}
+  .nem-talalt{
+    background:linear-gradient(135deg,rgba(240,180,41,0.1),rgba(240,180,41,0.05));
+    border-radius:var(--radius-sm);
+    padding:10px 12px;border-left:3px solid var(--gold);
+    font-size:13px;color:#7a5c00;margin-bottom:14px;
+  }
+
+  /* Toggle */
+  .toggle-wrap{display:flex;align-items:center;gap:12px}
+  .toggle{
+    width:48px;height:26px;border-radius:13px;
+    background:var(--bg);
+    cursor:pointer;position:relative;
+    transition:background 0.2s;flex-shrink:0;border:none;
+    box-shadow:var(--shadow-in);
+  }
+  .toggle.be{background:linear-gradient(135deg,var(--accent),var(--accent2))}
+  .toggle::after{
+    content:'';position:absolute;top:3px;left:3px;
+    width:20px;height:20px;border-radius:50%;
+    background:#fff;transition:left 0.2s;
+    box-shadow:2px 2px 5px rgba(0,0,0,0.15);
+  }
+  .toggle.be::after{left:25px}
+
+  /* Color picker */
+  .szin-valaszto{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+  .szin-gomb{
+    width:30px;height:30px;border-radius:50%;cursor:pointer;
+    border:3px solid transparent;
+    box-shadow:var(--shadow-sm);
+    transition:all 0.15s;
+  }
+  .szin-gomb.kivalasztott{
+    border-color:var(--text);
+    transform:scale(1.15);
+  }
+
+  /* Dashboard header */
+  .dash-header{
+    background:linear-gradient(160deg,#3a5a8a,#4a6fa5,#6b8fcf);
+    padding:24px 18px 20px;
+    border-radius:0 0 28px 28px;
+    box-shadow:0 8px 24px rgba(74,111,165,0.3);
+  }
+
+  /* Dashboard cards */
+  .dash-card{
+    background:var(--surface);
+    border-radius:var(--radius);
+    padding:18px;
+    margin-bottom:14px;
+    box-shadow:var(--shadow-out);
+    cursor:pointer;
+    transition:transform 0.15s, box-shadow 0.15s;
+  }
+  .dash-card:active{transform:scale(0.98);box-shadow:var(--shadow-sm)}
+
+  .dash-icon{
+    width:52px;height:52px;border-radius:16px;
+    display:flex;align-items:center;justify-content:center;
+    font-size:26px;flex-shrink:0;
+    box-shadow:var(--shadow-sm);
+  }
+
+  /* Stats */
+  .stat-chip{
+    flex:1;background:var(--bg);
+    border-radius:var(--radius-sm);padding:10px 6px;
+    text-align:center;box-shadow:var(--shadow-in);
+  }
+
+  /* Lista */
+  .lista-header{
+    background:var(--bg);
+    padding:14px 16px 12px;
+    position:sticky;top:0;z-index:100;
+    box-shadow:0 4px 12px rgba(0,0,0,0.06);
+  }
+  .keres-input{
+    width:100%;border:none;border-radius:var(--radius-sm);
+    padding:10px 14px;font-size:14px;margin-bottom:10px;
+    font-family:inherit;
+    background:var(--bg);
+    box-shadow:var(--shadow-in);
+    color:var(--text);
+    outline:none;
+  }
+  .filter-sor{display:flex;gap:8px}
+  .filter-gomb{
+    border:none;border-radius:20px;padding:7px 14px;
+    font-size:13px;font-weight:600;cursor:pointer;
+    font-family:inherit;
+    background:var(--bg);color:var(--text2);
+    box-shadow:var(--shadow-sm);
+    transition:all 0.15s;
+  }
+  .filter-gomb.aktiv{
+    background:linear-gradient(135deg,var(--accent),var(--accent2));
+    color:#fff;
+    box-shadow:3px 3px 8px rgba(74,111,165,0.3);
+  }
+
+  /* Med cards */
+  .med-card{
+    background:var(--surface);
+    border-radius:var(--radius);
+    display:flex;align-items:stretch;
+    box-shadow:var(--shadow-out);
+    cursor:pointer;overflow:hidden;
+    margin-bottom:12px;
+    transition:transform 0.15s;
+  }
+  .med-card:active{transform:scale(0.98)}
+  .med-szin-csik{width:5px;flex-shrink:0;border-radius:3px 0 0 3px}
+  .med-tartalom{flex:1;min-width:0;padding:13px 12px 13px 14px}
+  .med-fejlec{display:flex;align-items:center;gap:10px}
+  .med-ikon{
+    width:38px;height:38px;border-radius:12px;
+    display:flex;align-items:center;justify-content:center;
+    flex-shrink:0;font-size:20px;
+    box-shadow:var(--shadow-sm);
+  }
+  .med-nev{font-weight:700;font-size:15px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .med-adag{font-size:12px;color:var(--text2)}
+  .med-diagnozis{font-size:12px;color:var(--accent);margin-top:4px;font-style:italic}
+  .med-badge-sor{margin-top:6px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+  .badge{font-size:11px;font-weight:600;border-radius:20px;padding:3px 10px}
+  .badge-aktiv{background:rgba(76,175,125,0.15);color:var(--green)}
+  .badge-befejezett{background:rgba(155,163,192,0.15);color:var(--text3)}
+  .med-nyil{color:var(--text3);font-size:20px;display:flex;align-items:center;padding-right:12px}
+  .med-datum{font-size:11px;color:var(--text3)}
+
+  /* Detail */
+  .detail-hero{
+    border-radius:var(--radius);
+    padding:20px;margin:14px;
+    box-shadow:var(--shadow-out);
+  }
+  .detail-hero-belso{display:flex;align-items:center;gap:14px}
+  .detail-ikon{
+    width:66px;height:66px;border-radius:20px;
+    background:rgba(255,255,255,0.25);
+    display:flex;align-items:center;justify-content:center;font-size:32px;
+    box-shadow:3px 3px 10px rgba(0,0,0,0.15);
+  }
+  .detail-nev{font-size:22px;font-weight:700;color:#fff}
+  .detail-adag{font-size:13px;color:rgba(255,255,255,0.85);margin-top:3px}
+  .detail-badge{
+    font-size:12px;font-weight:600;border-radius:20px;
+    padding:3px 12px;display:inline-block;margin-top:7px;
+    background:rgba(255,255,255,0.25);color:#fff;
+  }
+  .detail-adat-sor{
+    display:flex;justify-content:space-between;align-items:flex-start;
+    padding:10px 0;border-bottom:1px solid rgba(155,163,192,0.15);
+  }
+  .detail-adat-cim{font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.04em}
+  .detail-adat-ertek{font-size:14px;color:var(--text);text-align:right;max-width:60%;word-break:break-word}
+
+  /* Leletek */
+  .lelet-card{
+    background:var(--surface);border-radius:var(--radius);
+    padding:14px;margin-bottom:10px;
+    box-shadow:var(--shadow-out);
+  }
+  .lelet-fejlec{display:flex;align-items:center;gap:10px}
+  .lelet-nev{font-weight:700;font-size:14px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .lelet-info{font-size:12px;color:var(--text2)}
+  .lelet-kep{width:100%;margin-top:10px;border-radius:var(--radius-sm);max-height:180px;object-fit:contain;display:block;background:var(--bg)}
+  .pdf-link{display:inline-block;margin-top:8px;font-size:13px;color:var(--accent);font-weight:600;text-decoration:none}
+
+  /* FAB */
+  .fab{
+    position:fixed;bottom:24px;right:24px;
+    width:56px;height:56px;
+    background:linear-gradient(135deg,var(--accent),var(--accent2));
+    color:#fff;border:none;border-radius:50%;
+    font-size:28px;cursor:pointer;
+    box-shadow:5px 5px 15px rgba(74,111,165,0.4), -3px -3px 10px rgba(255,255,255,0.8);
+    display:flex;align-items:center;justify-content:center;z-index:200;
+    transition:transform 0.15s;
+  }
+  .fab:active{transform:scale(0.94)}
+
+  .ures-lista{text-align:center;color:var(--text3);font-size:14px;padding:50px 0}
+  .torol-gomb{background:none;border:none;cursor:pointer;font-size:16px;color:var(--red);padding:4px;flex-shrink:0}
+  .file-input-gomb{
+    display:block;width:100%;padding:10px 14px;
+    border:none;border-radius:var(--radius-sm);
+    background:var(--bg);font-size:13px;cursor:pointer;
+    font-family:inherit;color:var(--text);
+    box-shadow:var(--shadow-in);
+  }
+  .foto-elovilag{width:100%;height:120px;object-fit:cover;border-radius:var(--radius-sm);display:block;margin-bottom:6px;box-shadow:var(--shadow-sm)}
+  .foto-torol{background:none;border:none;color:var(--red);font-size:13px;cursor:pointer;padding:0}
+
+  /* Stat sor */
+  .stat-sor{display:flex;gap:8px;margin:10px 0}
+  .stat-card{flex:1;background:rgba(255,255,255,0.15);border-radius:var(--radius-sm);padding:8px 4px;text-align:center;backdrop-filter:blur(4px)}
+  .stat-szam{font-size:22px;font-weight:800}
+  .stat-nev{font-size:14px;font-weight:600;color:rgba(255,255,255,0.95)}
+
+  /* Profil */
+  .leletek-gomb{
+    display:flex;align-items:center;gap:5px;
+    background:rgba(255,255,255,0.2);
+    border:1px solid rgba(255,255,255,0.3);
+    border-radius:20px;padding:8px 14px;
+    cursor:pointer;font-weight:600;font-size:13px;
+    font-family:inherit;color:#fff;
+    backdrop-filter:blur(4px);
+  }
+
+  /* Csillagok */
+  .csillag{transition:opacity 0.15s}
+
+  /* Animációk */
+  @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+  .nezet.aktiv{animation:fadeIn 0.2s ease}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+if (typeof pdfjsLib !== 'undefined') {
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+}
+</script>
+</head>
+<body>
+
+<!-- PROFIL NÉZET -->
+<div id="profil-nezet" class="nezet">
+  <div class="topbar">
+    <div class="topbar-sor">
+      <button class="vissza-gomb" onclick="nezetValt('lista')">← Vissza</button>
+      <span class="topbar-cim">Profil</span>
+      <button class="topbar-jobb" onclick="profilMent()">Mentés</button>
+    </div>
+  </div>
+  <div class="tartalom">
+    <div class="card">
+      <div style="font-size:16px;font-weight:700;color:var(--szoveg);margin-bottom:14px">👤 Személyes adatok</div>
+      <div class="form-group"><label class="form-label">Teljes név</label><input type="text" id="p-nev" placeholder="pl. Kiss János"></div>
+      <div class="form-group"><label class="form-label">Születési dátum</label><input type="date" id="p-szuletesi"></div>
+      <div class="form-group"><label class="form-label">Nem</label>
+        <select id="p-nem">
+          <option value="">– válassz –</option>
+          <option value="Férfi">Férfi</option>
+          <option value="Nő">Nő</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">Vércsoport</label>
+        <select id="p-vercsoport">
+          <option value="">– válassz –</option>
+          <option>0 Rh+</option><option>0 Rh-</option>
+          <option>A Rh+</option><option>A Rh-</option>
+          <option>B Rh+</option><option>B Rh-</option>
+          <option>AB Rh+</option><option>AB Rh-</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">TAJ szám</label><input type="text" id="p-taj" placeholder="000 000 000" maxlength="11"></div>
+    </div>
+    <div class="card">
+      <div style="font-size:16px;font-weight:700;color:var(--szoveg);margin-bottom:14px">🏥 Krónikus betegségek</div>
+      <div id="p-betegsegek-lista" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px"></div>
+      <div style="display:flex;gap:8px">
+        <input type="text" id="p-uj-betegseg" placeholder="pl. Magas vérnyomás, 2-es típusú cukorbetegség..." style="flex:1;border:1px solid #c0cfe0;border-radius:4px;padding:8px 10px;font-size:14px;font-family:inherit">
+        <button onclick="betegsegHozzaad()" style="background:#0078d4;color:#fff;border:none;border-radius:4px;padding:8px 14px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">+</button>
+      </div>
+    </div>
+    <div class="card" id="profil-osszefoglalas" style="display:none">
+      <div style="font-size:16px;font-weight:700;color:var(--szoveg);margin-bottom:14px">📋 Összefoglaló – orvosnak mutatható</div>
+      <div id="profil-osszefoglalas-tartalom"></div>
+    </div>
+  </div>
+</div>
+
+<!-- DASHBOARD NÉZET -->
+<div id="lista-nezet" class="nezet aktiv">
+  <div class="dash-header">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+      <div>
+        <div style="font-size:11px;font-weight:600;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:2px">Személyes egészségügyi</div>
+        <div style="font-size:24px;font-weight:700;color:#fff;letter-spacing:-0.3px">Health Diary</div>
+      </div>
+      <button onclick="nezetValt('profil')" style="background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.3);border-radius:50%;width:42px;height:42px;cursor:pointer;font-size:20px;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)">👤</button>
+    </div>
+    <div id="profil-udv" style="font-size:13px;color:rgba(255,255,255,0.7)"></div>
+  </div>
+  <div style="flex:1;overflow-y:auto;padding:12px 12px 30px">
+    <!-- Gyógyszerek -->
+    <div class="dash-card" onclick="nezetValt('gyogyszerek')">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div class="dash-icon" style="background:linear-gradient(135deg,#4a6fa5,#6b8fcf)">💊</div>
+          <div>
+            <div style="font-size:17px;font-weight:700;color:var(--text)">Gyógyszerek</div>
+            <div style="font-size:14px;color:var(--text2);margin-top:1px">Szedett és befejezett</div>
+          </div>
+        </div>
+        <div style="color:var(--text3);font-size:22px">›</div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <div class="stat-chip">
+          <div style="font-size:22px;font-weight:800;color:var(--accent)" id="dash-osszes">0</div>
+          <div style="font-size:13px;color:var(--text2);margin-top:2px;font-weight:500">Összes</div>
+        </div>
+        <div class="stat-chip">
+          <div style="font-size:22px;font-weight:800;color:var(--green)" id="dash-aktiv">0</div>
+          <div style="font-size:13px;color:var(--text2);margin-top:2px;font-weight:500">Aktív</div>
+        </div>
+        <div class="stat-chip">
+          <div style="font-size:22px;font-weight:800;color:var(--text3)" id="dash-befejezett">0</div>
+          <div style="font-size:13px;color:var(--text2);margin-top:2px;font-weight:500">Befejezett</div>
+        </div>
+      </div>
+    </div>
+    <!-- Vizsgálatok -->
+    <div class="dash-card" onclick="nezetValt('vizsgalatok')">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div class="dash-icon" style="background:linear-gradient(135deg,#3a7bd5,#5a9bf5)">🏥</div>
+          <div>
+            <div style="font-size:17px;font-weight:700;color:var(--text)">Vizsgálatok</div>
+            <div style="font-size:14px;color:var(--text2);margin-top:1px">Orvosi látogatások</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="font-size:24px;font-weight:800;color:var(--accent)" id="dash-vizsgalat">0</div>
+          <div style="color:var(--text3);font-size:22px">›</div>
+        </div>
+      </div>
+      <div id="dash-utolso-vizsgalat" style="margin-top:10px;font-size:12px;color:var(--text2);font-style:italic"></div>
+    </div>
+    <!-- Leletek -->
+    <div class="dash-card" onclick="nezetValt('leletek')">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div class="dash-icon" style="background:linear-gradient(135deg,#2d8a7a,#4dba9a)">📄</div>
+          <div>
+            <div style="font-size:17px;font-weight:700;color:var(--text)">Leletek</div>
+            <div style="font-size:14px;color:var(--text2);margin-top:1px">Orvosi dokumentumok</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="font-size:24px;font-weight:800;color:#2d8a7a" id="dash-lelet">0</div>
+          <div style="color:var(--text3);font-size:22px">›</div>
+        </div>
+      </div>
+      <div id="dash-utolso-lelet" style="margin-top:10px;font-size:12px;color:var(--text2);font-style:italic"></div>
+      <div id="dash-elemzes-panel" style="display:none;margin-top:12px;border-top:1px solid rgba(155,163,192,0.2);padding-top:12px">
+        <div id="dash-elemzes-nev" style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:8px"></div>
+        <button id="dash-elemzes-gomb"
+          onclick="event.stopPropagation(); dashElemez()"
+          style="display:block;width:100%;background:linear-gradient(135deg,#2d8a7a,#4dba9a);color:#fff;border:none;border-radius:var(--radius-sm);padding:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">
+          🔬 Laborértékek elemzése
+        </button>
+        <div id="dash-elemzes-eredmeny" style="margin-top:10px"></div>
+      </div>
+    </div>
+    <div style="text-align:center;font-size:15px;font-weight:700;color:var(--text);padding:6px">v1.8</div>
+  </div>
+</div>
+
+<!-- GYÓGYSZER LISTA NÉZET -->
+<div id="gyogyszerek-nezet" class="nezet">
+  <div class="lista-header">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0 10px">
+      <button class="vissza-gomb" onclick="nezetValt('lista')">← Vissza</button>
+      <div style="font-size:17px;font-weight:700;color:var(--text)">💊 Gyógyszerek</div>
+      <div style="width:60px"></div>
+    </div>
+
+    <input class="keres-input" id="keres-input" type="text" placeholder="🔍 Keresés..." oninput="listaFrissit()">
+    <div class="filter-sor">
+      <button class="filter-gomb aktiv" id="filter-all" onclick="filterVallt('all')">Összes</button>
+      <button class="filter-gomb" id="filter-active" onclick="filterVallt('active')">Aktív</button>
+      <button class="filter-gomb" id="filter-inactive" onclick="filterVallt('inactive')">Befejezett</button>
+    </div>
+  </div>
+  <div class="tartalom" id="lista-tartalom"></div>
+  <button class="fab" onclick="ujGyogyszer()">+</button>
+</div>
+
+<!-- FORM NÉZET -->
+<div id="form-nezet" class="nezet">
+  <div class="topbar">
+    <div class="topbar-sor">
+      <button class="vissza-gomb" onclick="formVissza()">← Vissza</button>
+      <span class="topbar-cim" id="form-cim">Új gyógyszer</span>
+      <div style="width:60px"></div>
+    </div>
+  </div>
+  <div class="tartalom">
+    <div class="card">
+      <div class="form-group">
+        <label class="form-label">Szín</label>
+        <div class="szin-valaszto" id="szin-valaszto"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" style="font-size:15px;font-weight:700">Gyógyszer neve *</label>
+        <input type="text" id="f-nev" placeholder="pl. Tritace, Metformin, Algopyrin" oninput="nevValtozas()" style="font-size:17px;font-weight:700">
+      </div>
+      <div id="info-panel-wrap"></div>
+      <div class="sor2 form-group">
+        <div><label class="form-label">Adagolás</label><input type="text" id="f-adagolas" placeholder="pl. 100"></div>
+        <div style="flex:1"><label class="form-label">Egység</label>
+          <select id="f-egyseg">
+            <option>mg</option><option>ml</option><option>g</option><option>mcg</option>
+            <option>IU</option><option>db</option><option>kapszula</option><option>tabletta</option><option>csepp</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Szedési gyakoriság</label>
+        <select id="f-freq">
+          <option>Naponta 1x</option><option>Naponta 2x</option><option>Naponta 3x</option>
+          <option>Naponta 4x</option><option>Minden második nap</option><option>Hetente 1x</option><option>Szükség szerint</option>
+        </select>
+      </div>
+      <div class="sor2 form-group">
+        <div style="flex:1"><label class="form-label">Kezdés</label><input type="date" id="f-kezdes" onchange="kezdesDatumEllenor()"></div>
+        <div style="flex:1"><label class="form-label">Befejezés</label><input type="date" id="f-befejezes" onchange="befejezesValtozas()"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Felírás oka / diagnózis</label>
+        <input type="text" id="f-diagnozis" placeholder="pl. vérnyomás csökkentés">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Felíró orvos</label>
+        <input type="text" id="f-orvos" placeholder="pl. Dr. Kiss Péter">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Megjegyzés</label>
+        <textarea id="f-megjegyzes" placeholder="Megjegyzések..."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Fénykép</label>
+        <div id="foto-elovilag-wrap"></div>
+        <input type="file" accept="image/*" class="file-input-gomb" onchange="fotoFeltolt(this)">
+      </div>
+      <div class="toggle-wrap">
+        <label class="form-label" style="margin:0">Jelenleg szedett</label>
+        <button class="toggle be" id="aktiv-toggle" onclick="toggleAktiv()"></button>
+      </div>
+    </div>
+    <div style="padding:0 12px 10px">
+      <button class="gomb gomb-kek" onclick="gyogyszerMent()">💾 Mentés</button>
+      <button class="gomb gomb-piros" id="torol-gomb" onclick="gyogyszerTorol()" style="display:none">🗑 Törlés</button>
+    </div>
+  </div>
+</div>
+
+<!-- DETAIL NÉZET -->
+<div id="detail-nezet" class="nezet">
+  <div class="topbar">
+    <div class="topbar-sor">
+      <button class="vissza-gomb" onclick="nezetValt('gyogyszerek')">← Vissza</button>
+      <span class="topbar-cim">Részletek</span>
+      <button class="topbar-jobb" onclick="detailSzerkeszt()">Szerkesztés</button>
+    </div>
+  </div>
+  <div class="tartalom">
+    <div id="detail-hero" class="detail-hero">
+      <div class="detail-hero-belso">
+        <div class="detail-ikon" id="detail-ikon">💊</div>
+        <div>
+          <div class="detail-nev" id="detail-nev"></div>
+          <div class="detail-adag" id="detail-adag"></div>
+          <span class="detail-badge" id="detail-badge"></span>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div id="detail-adatok"></div>
+      <button class="gomb" id="aktiv-toggle-detail" onclick="detailToggleAktiv()" style="margin-top:12px"></button>
+    </div>
+    <div style="margin:0 12px 20px">
+      <div id="detail-info-panel"></div>
+    </div>
+  </div>
+</div>
+
+<!-- VIZSGÁLATOK NÉZET -->
+<div id="vizsgalatok-nezet" class="nezet">
+  <div class="topbar">
+    <div class="topbar-sor">
+      <button class="vissza-gomb" onclick="nezetValt('lista')">← Vissza</button>
+      <span class="topbar-cim">Orvosi vizsgálatok</span>
+      <div style="width:60px"></div>
+    </div>
+  </div>
+  <div class="tartalom">
+    <div class="card">
+      <div style="font-size:18px;font-weight:700;color:var(--szoveg);margin-bottom:14px">Vizsgálat rögzítése</div>
+      
+      <div class="form-group"><label class="form-label">Dátum *</label><input type="date" id="v-datum"></div>
+      <div class="form-group"><label class="form-label">Szakorvos típusa *</label>
+        <input type="text" id="v-szakorvos" placeholder="pl. Kardiológus, Háziorvos, Szemész" list="szakorvos-lista">
+        <datalist id="szakorvos-lista">
+          <option value="Háziorvos"><option value="Kardiológus"><option value="Szemész">
+          <option value="Belgyógyász"><option value="Neurológus"><option value="Ortopéd">
+          <option value="Urológus"><option value="Nőgyógyász"><option value="Bőrgyógyász">
+          <option value="Reumatológus"><option value="Endokrinológus"><option value="Pszichiáter">
+          <option value="Pulmonológus"><option value="Gasztroenterológus"><option value="Onkológus">
+          <option value="Sebész"><option value="Fül-orr-gégész"><option value="Radiológus">
+        </datalist>
+      </div>
+      <div class="form-group"><label class="form-label">Orvos neve</label><input type="text" id="v-orvos" placeholder="pl. Dr. Kiss Péter"></div>
+      <div class="form-group"><label class="form-label">Megjegyzés / diagnózis</label><textarea id="v-megjegyzes" style="height:72px;resize:vertical"></textarea></div>
+      <div class="form-group">
+        <label class="form-label">Orvos értékelése</label>
+        <div id="csillag-valaszto" style="display:flex;gap:6px;margin-top:4px">
+          <span class="csillag" data-ert="1" onclick="csillagValaszt(1)" style="font-size:32px;cursor:pointer;opacity:0.3">⭐</span>
+          <span class="csillag" data-ert="2" onclick="csillagValaszt(2)" style="font-size:32px;cursor:pointer;opacity:0.3">⭐</span>
+          <span class="csillag" data-ert="3" onclick="csillagValaszt(3)" style="font-size:32px;cursor:pointer;opacity:0.3">⭐</span>
+          <span class="csillag" data-ert="4" onclick="csillagValaszt(4)" style="font-size:32px;cursor:pointer;opacity:0.3">⭐</span>
+          <span class="csillag" data-ert="5" onclick="csillagValaszt(5)" style="font-size:32px;cursor:pointer;opacity:0.3">⭐</span>
+        </div>
+        <div id="csillag-szoveg" style="font-size:13px;color:#555;margin-top:4px"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Kapcsolódó leletek</label>
+        <div id="v-leletek-lista" style="display:flex;flex-direction:column;gap:6px;margin-top:4px"></div>
+        <div style="font-size:12px;color:#555;margin-top:4px">Válaszd ki melyik leletek tartoznak ehhez a vizsgálathoz</div>
+      </div>
+      <button class="gomb gomb-kek" onclick="vizsgalatMent()">💾 Vizsgálat mentése</button>
+    </div>
+    <div style="padding:0 12px" id="vizsgalatok-lista"></div>
+  </div>
+</div>
+
+<!-- VIZSGÁLAT DETAIL NÉZET -->
+<div id="vizsgalat-detail-nezet" class="nezet">
+  <div class="topbar">
+    <div class="topbar-sor">
+      <button class="vissza-gomb" onclick="nezetValt('vizsgalatok')">← Vissza</button>
+      <span class="topbar-cim">Vizsgálat részletei</span>
+      <button class="topbar-jobb" onclick="vizsgalatSzerkeszt()">Szerkesztés</button>
+    </div>
+  </div>
+  <div class="tartalom">
+    <div id="vizsgalat-detail-tartalom"></div>
+  </div>
+</div>
+
+<!-- LELETEK NÉZET -->
+<div id="leletek-nezet" class="nezet">
+  <div class="topbar">
+    <div class="topbar-sor">
+      <button class="vissza-gomb" onclick="nezetValt('lista')">← Vissza</button>
+      <span class="topbar-cim">Orvosi leletek</span>
+      <div style="width:60px"></div>
+    </div>
+  </div>
+  <div class="tartalom">
+    <div class="card">
+      <div style="font-size:15px;font-weight:700;color:var(--szoveg);margin-bottom:12px">Lelet rögzítése</div>
+      <div class="form-group"><label class="form-label">Megnevezés *</label><input type="text" id="l-nev" placeholder="pl. Vérvizsgálat 2025"></div>
+      <div class="form-group"><label class="form-label">Dátum</label><input type="date" id="l-datum"></div>
+      <div class="form-group"><label class="form-label">Megjegyzés</label><input type="text" id="l-megjegyzes" placeholder="pl. Kardiológia"></div>
+      <div class="form-group">
+        <label class="form-label">Fájl (kép vagy PDF)</label>
+        <div id="lelet-elovilag"></div>
+        <input type="file" accept=".pdf,application/pdf,image/*" class="file-input-gomb" onchange="leletFajl(this)">
+      </div>
+      <button class="gomb gomb-kek" onclick="leletMent()">➕ Lelet hozzáadása</button>
+    </div>
+    <div style="padding:0 12px" id="leletek-lista"></div>
+  </div>
+</div>
+
+<script>
+// ── Gyógyszer adatbázis ───────────────────────────────────────────────────
+const DB = [
+  {n:["tritace","ramipril"],h:"Ramipril (ACE-gátló)",m:"Magas vérnyomás, szívelégtelenség, szívinfarktus utáni kezelés, veseprotekció",me:["Száraz köhögés","Szédülés","Fejfájás","Vérnyomásesés"],f:"Terhesség alatt tilos!"},
+  {n:["coverex","perindopril","perineva"],h:"Perindopril (ACE-gátló)",m:"Magas vérnyomás, szívelégtelenség, stroke megelőzés",me:["Köhögés","Szédülés","Fáradtság"],f:"Terhesség alatt tilos."},
+  {n:["enalapril","renitec","berlipril","enap"],h:"Enalapril (ACE-gátló)",m:"Magas vérnyomás, szívelégtelenség",me:["Köhögés","Fejfájás","Szédülés"],f:"Terhesség alatt tilos."},
+  {n:["lisinopril","lizinopril","diroton"],h:"Lisinopril (ACE-gátló)",m:"Magas vérnyomás, szívelégtelenség, diabéteszes vesekárosodás",me:["Köhögés","Szédülés","Fejfájás"],f:"Terhesség alatt tilos."},
+  {n:["losartan","lorista","lozap"],h:"Losartan (ARB)",m:"Magas vérnyomás, szívelégtelenség, diabéteszes vesekárosodás",me:["Szédülés","Fejfájás","Fáradtság"],f:"Terhesség alatt tilos."},
+  {n:["valsartan","diovan","valsacor"],h:"Valsartan (ARB)",m:"Magas vérnyomás, szívelégtelenség",me:["Szédülés","Fejfájás"],f:"Terhesség alatt tilos."},
+  {n:["telmisartan","micardis","telsan","pritor"],h:"Telmisartan (ARB)",m:"Magas vérnyomás, szív-érrendszeri kockázat csökkentése",me:["Szédülés","Hátfájás","Hasmenés"],f:"Terhesség alatt tilos."},
+  {n:["candesartan","atacand","kandesar","blopress"],h:"Candesartan (ARB)",m:"Magas vérnyomás, szívelégtelenség",me:["Szédülés","Fejfájás"],f:"Terhesség alatt tilos."},
+  {n:["irbesartan","aprovel","karvea"],h:"Irbesartan (ARB)",m:"Magas vérnyomás, diabéteszes vesekárosodás",me:["Szédülés","Fáradtság"],f:"Terhesség alatt tilos."},
+  {n:["olmesartan","olmetec","votum"],h:"Olmesartan (ARB)",m:"Magas vérnyomás",me:["Szédülés","Fejfájás","Hányinger"],f:"Terhesség alatt tilos."},
+  {n:["norvasc","amlodipin","amlodipine","amlator"],h:"Amlodipin (kalciumcsatorna-blokkoló)",m:"Magas vérnyomás, angina pectoris",me:["Bokaduzzanat","Fejfájás","Bőrpír","Szédülés"],f:"Súlyos májelégtelenség esetén óvatosan."},
+  {n:["verapamil","isoptin"],h:"Verapamil (kalciumcsatorna-blokkoló)",m:"Magas vérnyomás, szívritmus-zavar, angina",me:["Székrekedés","Szédülés","Lassult szívverés"],f:"Béta-blokkolóval injekció formában tilos!"},
+  {n:["diltiazem","cardizem"],h:"Diltiazem (kalciumcsatorna-blokkoló)",m:"Magas vérnyomás, angina, szívritmus-zavar",me:["Szédülés","Fejfájás","Lassult szívverés"],f:"Súlyos szívelégtelenség esetén kerülendő."},
+  {n:["lercanidipine","zanidip","lercapin"],h:"Lerkanidipin (kalciumcsatorna-blokkoló)",m:"Magas vérnyomás",me:["Fejfájás","Bokaduzzanat","Szívdobogás"],f:"Terhesség alatt kerülendő."},
+  {n:["concor","bisoprolol","bisocard"],h:"Bisoprolol (béta-blokkoló)",m:"Magas vérnyomás, szívelégtelenség, angina, szívritmus-zavar",me:["Fáradtság","Hideg végtagok","Lassult szívverés","Szédülés"],f:"Hirtelen elhagyása tilos! Asztmásoknál kerülendő."},
+  {n:["nebivolol","nebilet"],h:"Nebivolol (béta-blokkoló)",m:"Magas vérnyomás, szívelégtelenség",me:["Fejfájás","Szédülés","Fáradtság"],f:"Hirtelen elhagyása tilos."},
+  {n:["metoprolol","betaloc","metocard"],h:"Metoprolol (béta-blokkoló)",m:"Magas vérnyomás, szívelégtelenség, szívinfarktus, migrén megelőzés",me:["Fáradtság","Lassult szívverés","Hideg végtagok"],f:"Hirtelen elhagyása tilos."},
+  {n:["carvedilol","dilatrend","carvepen"],h:"Karvedilol (béta-blokkoló)",m:"Szívelégtelenség, magas vérnyomás",me:["Szédülés","Fáradtság","Alacsony vérnyomás"],f:"Hirtelen elhagyása tilos."},
+  {n:["atenolol","tenormin"],h:"Atenolol (béta-blokkoló)",m:"Magas vérnyomás, angina, szívritmus-zavar",me:["Fáradtság","Hideg végtagok","Lassult szívverés"],f:"Hirtelen elhagyása tilos. Asztmásoknál kerülendő."},
+  {n:["furosemid","furosemide","lasix"],h:"Furoszemid (kacsdiuretikum)",m:"Ödéma, szívelégtelenség, magas vérnyomás",me:["Káliumhiány","Szomjúság","Izomgörcs","Szédülés"],f:"Rendszeres elektrolit-ellenőrzés szükséges."},
+  {n:["indapamid","tertensif","rawel"],h:"Indapamid (tiazidszerű diuretikum)",m:"Magas vérnyomás",me:["Káliumhiány","Fejfájás","Szédülés"],f:"Elektrolitok rendszeres ellenőrzése szükséges."},
+  {n:["spironolakton","spironolactone","aldactone","verospiron"],h:"Spironolakton (káliummegtakarító diuretikum)",m:"Szívelégtelenség, májelégtelenség, magas vérnyomás",me:["Magas kálium","Mellnagyobbodás férfiaknál","Menstruációs zavar"],f:"Káliumszint rendszeres ellenőrzése szükséges."},
+  {n:["torasemid","torem"],h:"Toraszemid (kacsdiuretikum)",m:"Szívelégtelenség, ödéma, magas vérnyomás",me:["Káliumhiány","Szomjúság","Szédülés"],f:"Rendszeres elektrolit-ellenőrzés szükséges."},
+  {n:["rivaroxaban","xarelto"],h:"Rivaroxaban (NOAC – Xa-gátló)",m:"Mélyvénás trombózis, tüdőembólia, pitvarfibrilláció",me:["Vérzéshajlam","Hányinger","Vérszegénység"],f:"Súlyos veseelégtelenség esetén kerülendő."},
+  {n:["apixaban","eliquis"],h:"Apixaban (NOAC – Xa-gátló)",m:"Mélyvénás trombózis, tüdőembólia, pitvarfibrilláció",me:["Vérzéshajlam","Hányinger"],f:"Műtét előtt le kell állítani."},
+  {n:["dabigatran","pradaxa"],h:"Dabigatran (NOAC – trombin gátló)",m:"Pitvarfibrilláció, mélyvénás trombózis",me:["Vérzéshajlam","Dyspepsia","Hányinger"],f:"Veseelégtelenségben kerülendő."},
+  {n:["warfarin","coumadin"],h:"Warfarin (K-vitamin antagonista)",m:"Mélyvénás trombózis, tüdőembólia, pitvarfibrilláció",me:["Vérzéshajlam","Bőrpír","Hajhullás"],f:"Rendszeres INR-ellenőrzés szükséges!"},
+  {n:["clopidogrel","plavix"],h:"Klopidogrél (thrombocyta-aggregáció gátló)",m:"Szívinfarktus és stroke megelőzése, stentelés után",me:["Vérzéshajlam","Gyomorpanaszok","Bőrkiütés"],f:"Műtét előtt 5-7 nappal le kell állítani."},
+  {n:["ticagrelor","brilique"],h:"Tikagrelor (thrombocyta-aggregáció gátló)",m:"Akut koronáriaszindróma, szívinfarktus megelőzése",me:["Vérzéshajlam","Légszomj","Köhögés"],f:"Aszpirinnel max. 100mg kombinálható."},
+  {n:["enoxaparin","clexane"],h:"Enoxaparin (kis molekulatömegű heparin)",m:"Mélyvénás trombózis kezelése és megelőzése",me:["Vérzéshajlam","Injekció helyi reakció"],f:"Veseelégtelenségben dóziscsökkentés szükséges."},
+  {n:["amiodarone","amiodaron","cordarone"],h:"Amiodaron (antiaritmiás)",m:"Szívritmus-zavarok",me:["Fényérzékenység","Pajzsmirigyzavar","Tüdőtoxicitás"],f:"Számos gyógyszer-kölcsönhatás!"},
+  {n:["digoxin","lanoxin"],h:"Digoxin (szívglikozid)",m:"Szívelégtelenség, pitvarfibrilláció",me:["Hányinger","Látászavar","Szívritmus-zavar"],f:"Szűk terápiás ablak – rendszeres vérszint-ellenőrzés!"},
+  {n:["aspirin cardio","aspirin protect","cardioaspirin","aspirin 100"],h:"Aszpirin 100mg (thrombocyta-aggregáció gátló)",m:"Szívinfarktus és stroke megelőzése",me:["Gyomorpanaszok","Vérzéshajlam"],f:"Gyomorvérzés veszélye!"},
+  {n:["aspirin","acetylsalicylic acid","acetilszalicilsav","aspirin c","aspirin complex"],h:"Aszpirin (fájdalomcsillapító/lázcsillapító)",m:"Fájdalomcsillapítás, lázcsökkentés, fejfájás",me:["Gyomorpanaszok","Vérzéshajlam","Fülzúgás"],f:"16 év alatt lázas betegségben tilos."},
+  {n:["paracetamol","acetaminophen","panadol","ben-u-ron"],h:"Paracetamol (fájdalomcsillapító/lázcsillapító)",m:"Fájdalomcsillapítás, lázcsökkentés",me:["Májtoxicitás túladagolásnál"],f:"Alkohollal májtoxikus! Max. napi 4g felnőtteknek."},
+  {n:["algopyrin","algopirin","metamizol","novalgin","analgin"],h:"Metamizol/Algopyrin (fájdalomcsillapító/görcsoldó)",m:"Erős fájdalom, görcsös fájdalom (epe/vesekolika), magas láz",me:["Agranulocytosis (ritka)","Allergiás reakció","Vérnyomásesés"],f:"Agranulocytosis veszélye – láz esetén azonnal orvoshoz!"},
+  {n:["algoflex","algoflex forte","algoflex uno"],h:"Algoflex (ibuprofen 400mg)",m:"Fájdalomcsillapítás, lázcsökkentés, gyulladáscsökkentés",me:["Gyomorpanaszok","Gyomorfekély","Vesekárosodás"],f:"Gyomorsavgátlóval együtt szedendő! Terhesség 3. trimeszterében tilos."},
+  {n:["ibuprofen","nurofen","advil","brufen","moment"],h:"Ibuprofen (NSAID)",m:"Fájdalomcsillapítás, lázcsökkentés, gyulladáscsökkentés",me:["Gyomorpanaszok","Gyomorfekély","Vesekárosodás"],f:"Gyomorsavgátlóval együtt szedendő!"},
+  {n:["diclofenac","voltaren","cataflam","diclac"],h:"Diklofenák (NSAID)",m:"Fájdalomcsillapítás, gyulladáscsökkentés, ízületi betegségek",me:["Gyomorpanaszok","Gyomorfekély","Vesekárosodás"],f:"Szív-érrendszeri betegség esetén fokozott kockázat."},
+  {n:["naproxen","nalgesin","aleve","naprosyn"],h:"Naproxen (NSAID)",m:"Fájdalomcsillapítás, gyulladáscsökkentés, köszvény, menstruációs fájdalom",me:["Gyomorpanaszok","Vesekárosodás","Szívkockázat"],f:"Gyomorsavgátlóval együtt szedendő."},
+  {n:["meloxicam","movalis","movatec"],h:"Meloxikám (COX-2 preferáló NSAID)",m:"Ízületi gyulladás, fájdalomcsillapítás",me:["Gyomorpanaszok","Szédülés","Vesekárosodás"],f:"Legkisebb hatásos dózisban és legrövidebb ideig alkalmazandó."},
+  {n:["tramadol","tramal"],h:"Tramadol (opioid fájdalomcsillapító)",m:"Közepes-erős fájdalom kezelése",me:["Hányinger","Szédülés","Székrekedés","Dependencia"],f:"Függőséget okozhat! Alkohollal tilos kombinálni."},
+  {n:["coldrex","coldrex tabletta","coldrex maxgrip","coldrex hotrem"],h:"Coldrex (kombinált megfázás elleni)",m:"Megfázás tüneti kezelése – láz, fejfájás, orrdugulás, torokfájás",me:["Magas vérnyomás (fenilefrin)","Álmatlanság","Szívdobogás"],f:"Magas vérnyomásos betegeknél kerülendő! Ne kombinálj más paracetamolt tartalmazó szerrel."},
+  {n:["theraflu","theraflu extra","theraflu forte"],h:"Theraflu (kombinált megfázás elleni)",m:"Megfázás és influenza tüneti kezelése",me:["Magas vérnyomás","Álmatlanság","Szédülés"],f:"Magas vérnyomásosaknak kerülendő."},
+  {n:["strepsils","strepsils intensive"],h:"Strepsils (torokfájás elleni szopóka)",m:"Torokfájás, torokfertőzés tüneti kezelése",me:["Szájirritáció (ritkán)"],f:"Tartós torokfájás esetén orvoshoz kell fordulni."},
+  {n:["otrivin","xylometazolin","vibrocil","oximetazolin"],h:"Xilometazolin (orrdugulás elleni spray)",m:"Orrdugulás tüneti kezelése",me:["Helyi irritáció","Visszaduzzadás tartós szedésnél"],f:"Max. 7 napig alkalmazható!"},
+  {n:["acetylcysteine","acetilcisztein","fluimucil","acc"],h:"Acetilcisztein (köptetőszer)",m:"Nyákfelszabadítás, köhögés",me:["Hányinger","Gyomor-bélpanaszok"],f:"Antibiotikumtól 2 órával el kell választani."},
+  {n:["ambroxol","mucosolvan","ambrohexal"],h:"Ambroxol (köptetőszer)",m:"Nyákfelszabadítás, köhögés, bronchitis",me:["Hányinger","Hasi fájdalom"],f:"Sok folyadékot kell inni."},
+  {n:["no-spa","nospa","drotaverin"],h:"No-Spa/Drotaverin (simaizom görcsoldó)",m:"Simaizom-görcsök – epegörcs, vesegörcs, bélgörcs, menstruációs görcs",me:["Szédülés","Fejfájás","Alacsony vérnyomás"],f:"Súlyos szív-, vese- vagy májelégtelenségben kerülendő."},
+  {n:["buscopan","hyoscine","hioszcin"],h:"Buscopan/Hioszcin (görcsoldó)",m:"Hasi görcsök, irritábilis bél, epegörcs, menstruációs görcs",me:["Száraz száj","Szívdobogás","Homályos látás"],f:"Zárttekű glaukómában és prosztata-megnagyobbodásban kerülendő."},
+  {n:["sumatriptan","imigran"],h:"Szumatriptán (triptán – migrén)",m:"Akut migrén kezelése",me:["Mellkasi szorítás","Szédülés","Hányinger"],f:"Szívbetegségben tilos!"},
+  {n:["amoxicillin","amoxil","flemoxin"],h:"Amoxicillin (penicillin antibiotikum)",m:"Bakteriális légúti, húgyúti, bőrfertőzések",me:["Hasmenés","Hányinger","Bőrkiütés"],f:"Penicillin-allergia esetén tilos!"},
+  {n:["augmentin","amoxiclav","co-amoxiclav"],h:"Amoxicillin + Klavulansav (széles spektrumú antibiotikum)",m:"Bakteriális fertőzések – légúti, húgyúti, bőr, fogászati",me:["Hasmenés","Hányinger","Májemelkedés"],f:"Penicillin-allergia esetén tilos!"},
+  {n:["azithromycin","azitromicin","sumamed"],h:"Azitromicin (makrolid antibiotikum)",m:"Légúti és bőrfertőzések, atípusos pneumónia, Chlamydia",me:["Hányinger","Hasmenés","Hasi fájdalom"],f:"Szívritmus-zavar esetén óvatosan."},
+  {n:["clarithromycin","klaritromicin","klacid","fromilid"],h:"Klaritromicin (makrolid antibiotikum)",m:"Légúti fertőzések, Helicobacter pylori eradikáció",me:["Hányinger","Hasmenés","Ízérzészavar"],f:"Számos gyógyszer-kölcsönhatás."},
+  {n:["ciprofloxacin","ciprobay","ciprinol"],h:"Ciprofloxacin (fluorokinolon antibiotikum)",m:"Húgyúti, légúti, bőr- és csontfertőzések",me:["Hányinger","Hasmenés","Ín-gyulladás"],f:"Ínszakadás veszélye! Tejet és antacidokat el kell választani."},
+  {n:["levofloxacin","tavanic"],h:"Levofloxacin (fluorokinolon antibiotikum)",m:"Légúti, húgyúti fertőzések, pneumónia",me:["Hányinger","Hasmenés","Ín-gyulladás"],f:"Ínszakadás veszélye!"},
+  {n:["doxycycline","doxiciklin","vibramycin"],h:"Doxiciklin (tetraciklín antibiotikum)",m:"Atípusos pneumónia, Lyme-kór, szexuálisan terjedő betegségek",me:["Hányinger","Fényérzékenység","Nyelőcsőirritáció"],f:"Napvédelem szükséges!"},
+  {n:["cefuroxime","cefuroxim","zinnat"],h:"Cefuroxim (2. generációs cefalosporin)",m:"Légúti, húgyúti, bőrfertőzések",me:["Hasmenés","Hányinger","Allergiás reakció"],f:"Penicillin-allergiásoknak óvatosan."},
+  {n:["metronidazole","metronidazol","klion","flagyl"],h:"Metronidazol (antibiotikum)",m:"Anaerob bakteriális és parazitás fertőzések, Helicobacter pylori",me:["Fémíz","Hányinger","Fejfájás"],f:"Alkohollal tilos kombinálni – antabusz-reakció!"},
+  {n:["nitrofurantoin","furadantin"],h:"Nitrofurantoin (húgyúti antibiotikum)",m:"Húgyúti fertőzések kezelése és megelőzése",me:["Hányinger","Fejfájás","Barna vizelet"],f:"Veseelégtelenségben kerülendő."},
+  {n:["fluconazole","flukonazol","diflucan"],h:"Flukonazol (gombaellenes)",m:"Hüvelyi candida, szájgombásodás, köröm- és bőrgombásodás",me:["Hányinger","Fejfájás","Hasi fájdalom"],f:"Számos gyógyszer-kölcsönhatás!"},
+  {n:["terbinafine","terbinafin","lamisil"],h:"Terbinafin (gombaellenes)",m:"Körömgombásodás, bőrgombásodás",me:["Ízérzészavar","Fejfájás","Hányinger"],f:"Májellenőrzés szükséges hosszú kezelésnél."},
+  {n:["acyclovir","aciklovir","zovirax"],h:"Aciklovir (vírusellenes)",m:"Herpes simplex, herpes zoster (övsömör) kezelése",me:["Hányinger","Fejfájás"],f:"Sok folyadékot kell fogyasztani."},
+  {n:["omeprazole","omeprazol","losec","helicid"],h:"Omeprazol (protonpumpagátló)",m:"Gyomorfekély, reflux betegség, Helicobacter pylori fertőzés",me:["Fejfájás","Hasmenés","Hányinger"],f:"Hosszú távú szedés csontritkulást és magnéziumhiányt okozhat."},
+  {n:["pantoprazole","pantoprazol","controloc","pantoloc"],h:"Pantoprazol (protonpumpagátló)",m:"Gyomorfekély, reflux betegség",me:["Fejfájás","Hasmenés","Hányinger"],f:"Hosszú távú szedés magnéziumhiányt okozhat."},
+  {n:["esomeprazole","esomeprazol","nexium","emanera"],h:"Eszomeprazol (protonpumpagátló)",m:"Reflux betegség, gyomorfekély",me:["Fejfájás","Hasmenés","Hányinger"],f:"Hosszú távú szedés csontritkulást okozhat."},
+  {n:["famotidin","famotidine","quamatel"],h:"Famotidin (H2-blokkoló)",m:"Gyomorfekély, reflux betegség",me:["Fejfájás","Szédülés","Székrekedés"],f:"Veseelégtelenségben dóziscsökkentés szükséges."},
+  {n:["domperidone","domperidon","motilium"],h:"Domperidon (prokinetikum/antiemetikum)",m:"Hányinger, hányás, gyomorürülési zavar, puffadás",me:["Fejfájás","Szájszárazság","Szívritmus-zavar (ritka)"],f:"Max. 10mg 3x/nap, legfeljebb 1 hétig."},
+  {n:["loperamide","loperamid","imodium"],h:"Loperamid (hasmenés elleni)",m:"Akut és krónikus hasmenés kezelése",me:["Székrekedés","Hasi puffadás","Szédülés"],f:"Véres vagy lázas hasmenésben ne alkalmazd!"},
+  {n:["lactulose","laktuloz","duphalac"],h:"Laktulóz (ozmotikus hashajtó)",m:"Székrekedés, máji encephalopathia",me:["Puffadás","Hasi görcs","Hasmenés nagy dózisban"],f:"Diabéteszeseknek óvatosan."},
+  {n:["bisacodyl","biszakodil","dulcolax"],h:"Biszakodil (stimuláló hashajtó)",m:"Székrekedés rövid távú kezelése",me:["Hasi görcs","Hasmenés"],f:"Max. 10 napig alkalmazható!"},
+  {n:["macrogol","makrogol","movicol","forlax"],h:"Makrogol (ozmotikus hashajtó)",m:"Székrekedés kezelése",me:["Puffadás","Hasi görcs"],f:"Tartósan is alkalmazható, nem szoktat rá."},
+  {n:["simetikon","simethicone","espumisan"],h:"Szimetikon (szélhajtó)",m:"Puffadás, gáz, bélgörcs tüneti kezelése",me:["Nincs ismert mellékhatás"],f:"Csecsemőknél is biztonságos."},
+  {n:["atorvastatin","atoris","sortis","torvast"],h:"Atorvastatin (statin)",m:"Magas koleszterinszint, szív-érrendszeri betegség megelőzése",me:["Izomfájdalom","Fejfájás","Hányinger"],f:"Terhesség alatt tilos! Izomfájdalom esetén azonnal orvoshoz."},
+  {n:["rosuvastatin","crestor","roswera","mertenil"],h:"Rosuvastatin (statin)",m:"Magas koleszterinszint, szív-érrendszeri kockázat csökkentése",me:["Izomfájdalom","Fejfájás","Hasmenés"],f:"Terhesség alatt tilos."},
+  {n:["simvastatin","simvacor","zocor","simgal"],h:"Szimvastatin (statin)",m:"Magas koleszterinszint, szív-érrendszeri betegség megelőzése",me:["Izomfájdalom","Fejfájás","Hányinger"],f:"Grépfruit tilos! Terhesség alatt tilos."},
+  {n:["ezetimibe","ezetimib","ezetrol"],h:"Ezetimib (koleszterinfelszívódás gátló)",m:"Magas koleszterinszint – statinnal vagy önállóan",me:["Fejfájás","Hasi fájdalom","Hasmenés"],f:"Statinnal kombinálva izomkárosodás kockázata."},
+  {n:["fenofibrate","fenofibrát","lipanthyl"],h:"Fenofibrát (fibrát)",m:"Magas trigliceridszint, alacsony HDL-koleszterin",me:["Gyomor-bélpanaszok","Izomfájdalom"],f:"Statinnal kombinálva izomkárosodás kockázata."},
+  {n:["alendronate","alendronat","fosamax"],h:"Alendronát (biszfoszfonát)",m:"Csontritkulás megelőzése és kezelése",me:["Nyelőcső-irritáció","Hasi fájdalom","Izomfájdalom"],f:"Reggel éhgyomorra nagy pohár vízzel! 30 percig felállva maradni."},
+  {n:["calcium","kalcium","calcium d3","kalcipos"],h:"Kalcium + D3-vitamin",m:"Csontritkulás megelőzése, kalciumhiány",me:["Székrekedés","Puffadás"],f:"Más gyógyszerektől 2 órával el kell választani."},
+  {n:["vitamin d","d-vitamin","d3-vitamin","vigantol","devit"],h:"D3-vitamin (kolekalciferol)",m:"D-vitamin-hiány, csontritkulás, immunrendszer erősítése",me:["Magas kalciumszint túladagolásnál"],f:"Rendszeres D-vitamin szint ellenőrzés nagy dózisoknál."},
+  {n:["hydroxychloroquine","hidroxiklorokin","plaquenil"],h:"Hidroxiklorokin (DMARD)",m:"Rheumatoid arthritis, SLE, Sjögren-szindróma",me:["Szemkárosodás","Hányinger","Fejfájás"],f:"Rendszeres szemészeti ellenőrzés szükséges!"},
+  {n:["allopurinol","zyloric"],h:"Allopurinol (húgysavszint-csökkentő)",m:"Köszvény megelőzése, magas húgysavszint",me:["Bőrkiütés","Hányinger","Májemelkedés"],f:"Akut köszvényrohamban ne kezdje el! Sok folyadék szükséges."},
+  {n:["colchicine","colchicin"],h:"Kolchicin (köszvényellenes)",m:"Akut köszvényroham",me:["Hasmenés","Hányinger","Hasi fájdalom"],f:"Vesekárosodásban dóziscsökkentés szükséges."},
+  {n:["baclofen","baklofen","lioresal"],h:"Baklofen (izomlazító)",m:"Izomspaszticitás, sclerosis multiplex",me:["Álmosság","Szédülés","Izomgyengeség"],f:"Hirtelen elhagyása tilos!"},
+  {n:["mydocalm","tolperizon"],h:"Mydocalm/Tolperizon (izomlazító)",m:"Izomgörcsök, spaszticitás, gerincbetegségek",me:["Szédülés","Fejfájás","Gyengeség"],f:"Mioasthenia gravisban kerülendő."},
+  {n:["sirdalud","tizanidin"],h:"Sirdalud/Tizanidin (izomlazító)",m:"Izomspaszticitás, akut hátfájdalom",me:["Álmosság","Szájszárazság","Alacsony vérnyomás"],f:"Alkohollal kerülendő."},
+  {n:["voltaren emulgel","voltaren gel","voltaren max"],h:"Voltaren Emulgel (diklofenák gél)",m:"Helyi fájdalomcsillapítás – ízületi fájdalom, izomhúzódás, rándulás, sportsérülés",me:["Helyi bőrirritáció","Bőrpír"],f:"Sérült bőrre ne kenj!"},
+  {n:["fastum gel","fastum","ketoprofen gel"],h:"Fastum gél (ketoprofen)",m:"Helyi fájdalomcsillapítás – izomhúzódás, rándulás, ízületi fájdalom",me:["Helyi bőrirritáció","Fényérzékenység"],f:"Napfénynek ne tedd ki a kezelt területet 2 hétig!"},
+  {n:["flector","flector tapasz"],h:"Flector tapasz (diklofenák)",m:"Helyi fájdalomcsillapítás – ízületi fájdalom, izomhúzódás, ficam",me:["Helyi bőrirritáció","Bőrpír","Viszketés"],f:"Sérült bőrre ne alkalmazd!"},
+  {n:["dolobene","dolobene gel"],h:"Dolobene gél (heparin + dexpantenol + DMSO)",m:"Rándulás, zúzódás, izomhúzódás, hematomák",me:["Helyi bőrirritáció","Fokhagyma-szerű lehelet"],f:"Nyílt sebre ne alkalmazd!"},
+  {n:["lioton gel","lioton","heparin gel"],h:"Heparin gél",m:"Zúzódás, véraláfutás, visszértágulat, phlebitis, hematomák",me:["Helyi bőrirritáció"],f:"Nyílt sebre és nyálkahártyára ne alkalmazd!"},
+  {n:["traumeel","traumeel gel"],h:"Traumeel gél (homeopátiás)",m:"Zúzódás, rándulás, izomfájdalom, ízületi gyulladás",me:["Helyi allergiás reakció (ritka)"],f:"Ha bőrpír jelenik meg, hagyd abba."},
+  {n:["arnica gel","arnika gel","arnica krem","arnika krem"],h:"Árnika gél/krém",m:"Zúzódás, véraláfutás, izomfájdalom, ízületi fájdalom",me:["Helyi allergiás reakció"],f:"Nyílt sebre és szemre ne alkalmazd!"},
+  {n:["proenzi","proenzi 3","proenzi forte"],h:"Proenzi (glükozamin + kondroitin + MSM)",m:"Osteoarthritis, ízületi kopás, porcpótlás, ízületi fájdalom és merevség",me:["Hányinger","Puffadás","Hasmenés"],f:"Legalább 3 hónapos kúra szükséges a hatás érzékeléséhez."},
+  {n:["glucosamine","glukozamin","glükozamin","dona"],h:"Glükozamin (ízületi pótló)",m:"Osteoarthritis, térdízületi kopás, porcpótlás",me:["Hányinger","Puffadás","Hasmenés"],f:"Véralvadásgátlóval kombinálva fokozott vérzéshajlam."},
+  {n:["chondroitin","kondroitin"],h:"Kondroitin (porcvédő)",m:"Osteoarthritis, ízületi kopás, porcpótlás",me:["Hányinger","Hasi fájdalom","Puffadás"],f:"Véralvadásgátlóval kombinálva fokozott vérzéshajlam."},
+  {n:["vitamin c","c-vitamin","redoxon"],h:"C-vitamin (aszkorbinsav)",m:"C-vitamin-hiány, immunrendszer erősítése",me:["Hasmenés nagy dózisban"],f:"Napi 2000mg feletti dózis kerülendő."},
+  {n:["vitamin b12","b12-vitamin","cyanocobalamin"],h:"B12-vitamin (kobalamin)",m:"B12-vitamin-hiány, vészes vérszegénység, neuropátia",me:["Ritka allergiás reakció"],f:"Metformin és PPI szedők rendszeres B12-ellenőrzést igényelnek."},
+  {n:["folic acid","folsav","fólsav"],h:"Folsav (B9-vitamin)",m:"Folsavhiány, terhesség alatti megelőzés, metotrexát mellé",me:["Ritkán allergiás reakció"],f:"Terhesség tervezésekor 3 hónappal előtte kezdendő."},
+  {n:["ferrous sulfate","vas szulfat","tardyferon","sorbifer","ferrum"],h:"Vas (vaspótló)",m:"Vashiányos vérszegénység",me:["Székrekedés","Fekete szék","Hasi fájdalom","Hányinger"],f:"Tejtől, kávétól, antacidoktól 2 órával el kell választani."},
+  {n:["magnesium","magnezium","magnézium","magne b6"],h:"Magnézium",m:"Magnéziumhiány, izomgörcsök, szívritmus-zavar megelőzés",me:["Hasmenés nagy dózisban","Hányinger"],f:"Veseelégtelenségben óvatosan."},
+  {n:["melatonin","circadin","melaxen"],h:"Melatonin (alváshormon)",m:"Alvászavar, jet lag, cirkadián ritmus zavar",me:["Álmosság","Fejfájás","Szédülés"],f:"Másnap ne vezessen."},
+  {n:["multivitamin","centrum","supradyn","elevit"],h:"Multivitamin",m:"Vitamin- és ásványianyag-hiány megelőzése",me:["Hányinger (üres gyomorra)"],f:"Terhességi multivitamin (pl. Elevit) magas folsavat tartalmaz."},
+  {n:["tamsulosin","tamszulozin","alna","omnic"],h:"Tamszulozin (alfa-1 blokkoló)",m:"Jóindulatú prosztata-megnagyobbodás, húgyúti panaszok",me:["Szédülés","Vérnyomásesés álláskor","Retrográd ejakuláció"],f:"Szürkehályog műtét előtt szóljon az orvosának!"},
+  {n:["sildenafil","viagra"],h:"Szildenafil (PDE5 gátló)",m:"Erekciós diszfunkció, pulmonáris artériás hipertenzió",me:["Fejfájás","Bőrpír","Orrfolyás","Látászavar"],f:"Nitrátokkal tilos kombinálni!"},
+  {n:["levocetirizine","levocetrizin","xyzal"],h:"Levocetirizin (antihisztamin)",m:"Allergiás nátha, csalánkiütés",me:["Álmosság","Fejfájás","Száraz száj"],f:"Vezetés előtt óvatosan."},
+  {n:["cetirizine","cetirizin","zyrtec","cetrin"],h:"Cetirizin (antihisztamin)",m:"Allergiás nátha, csalánkiütés",me:["Álmosság","Száraz száj","Fejfájás"],f:"Alkohollal kerülendő kombinálni."},
+  {n:["loratadine","loratidin","claritine","flonidan"],h:"Loratidin (nem szedatív antihisztamin)",m:"Allergiás nátha, csalánkiütés",me:["Fejfájás","Álmosság (ritkán)"],f:"Általában nem okoz álmosságot."},
+  {n:["metformin","glucophage","meforal"],h:"Metformin (biguanid antidiabetikum)",m:"2-es típusú cukorbetegség kezelése",me:["Hányinger","Hasmenés","Hasi fájdalom","Fémíz"],f:"Veseelégtelenség esetén kerülendő. Jódos kontrasztanyag előtt el kell hagyni."},
+  {n:["levothyroxine","letrox","euthyrox","l-thyroxin"],h:"Levotiroxin (pajzsmirigyhormon T4)",m:"Pajzsmirigy-alulműködés, golyvás betegség",me:["Szívdobogás","Fejfájás","Fogyás","Izgatottság"],f:"Éhgyomorra, 30 perccel étkezés előtt. Kalcium és vas felszívódást gátol."},
+  {n:["prednisolone","prednizolon","medrol","methylprednisolone"],h:"Prednizolon/Metilprednizolon (szisztémás kortikoszteroid)",m:"Gyulladásos és autoimmun betegségek, allergiás reakciók",me:["Súlynövekedés","Cukoremelkedés","Csontritkulás"],f:"Hirtelen elhagyása tilos! Mellékvese-elégtelenség veszélye."},
+  {n:["sertraline","sertralin","zoloft","serlain"],h:"Szertralin (SSRI antidepresszáns)",m:"Depresszió, pánikbetegség, OCD, PTSD",me:["Hányinger","Álmatlanság","Szexuális zavar"],f:"18 év alatt fokozott öngyilkossági kockázat."},
+  {n:["escitalopram","cipralex","lexapro"],h:"Eszitalopram (SSRI antidepresszáns)",m:"Depresszió, generalizált szorongásos zavar, pánikbetegség",me:["Hányinger","Álmatlanság","Szexuális zavar"],f:"18 év alatt fokozott öngyilkossági kockázat."},
+  {n:["diazepam","valium","seduxen"],h:"Diazepam (benzodiazepin)",m:"Szorongás, izomgörcs, epilepszia, alkohol-elvonás",me:["Álmosság","Szédülés","Dependencia"],f:"Függőséget okoz! Alkohollal tilos kombinálni."},
+  {n:["alprazolam","xanax","frontin"],h:"Alprazolam (benzodiazepin)",m:"Szorongásos zavarok, pánikbetegség",me:["Álmosság","Szédülés","Dependencia"],f:"Függőséget okoz! Hirtelen elhagyása tilos."},
+  {n:["zolpidem","stilnox","sanval"],h:"Zolpidem (altató)",m:"Rövid távú álmatlanság kezelése",me:["Álmosság","Szédülés","Fejfájás","Alvajárás"],f:"Max. 4 hetes kezelés! Másnap ne vezessen."},
+  {n:["tobradex","tobramycin dexamethasone","tobramicin dexametazon"],h:"Tobradex (tobramicin + dexametazon – szemcsepp/kenőcs)",m:"Bakteriális szemfertőzés gyulladással – kötőhártyagyulladás, szemhéjgyulladás, szemészeti műtét utáni kezelés",me:["Szemnyomás-emelkedés","Szem-irritáció","Homályos látás","Szürkehályog hosszú kezelésnél"],f:"Max. 2 hétig alkalmazható! Hosszú szedésnél szemnyomás-ellenőrzés szükséges. Kontaktlencse viselése kerülendő."},
+  {n:["clotrimazole","klotrimazol","canesten"],h:"Klotrimazol (gombaellenes – helyi)",m:"Bőrgombásodás, hüvelyi candida, körömgombásodás",me:["Helyi irritáció","Bőrpír","Viszketés"],f:"Ha 4 hét után nem javul, orvoshoz kell fordulni."},
+];
+
+const SZINEK = ["#0078d4","#e81123","#ffb900","#107c10","#005a9e","#d83b01","#8764b8","#00b4d2","#038387","#c50f1f"];
+
+// ── Állapot ───────────────────────────────────────────────────────────────
+let profil = {
+  nev: '', szuletesi: '', nem: '', vercsoport: '', taj: '', betegsegek: []
+};
+let gyogyszerek = [];
+let leletek = [];
+let aktivFilter = 'all';
+let szerkesztettId = null;
+let formAktiv = true;
+let formSzin = SZINEK[0];
+let leletFajlAdat = null;
+let fotoAdat = null;
+let vizsgalatok = [];
+let vizsgalatForm = {};
+let vizsgalatSzerkesztettId = null;
+
+// ── localStorage ──────────────────────────────────────────────────────────
+const JSONBIN_ID = "69c8d7e3ed015c742bc868ef";
+const JSONBIN_KEY = "$2a$10$2dqxE9s4PthMilpT1bUWFuL0GgPUeD6kMG.1ulLKk2roY.gKcQUHu";
+const JSONBIN_URL = "https://api.jsonbin.io/v3/b/" + JSONBIN_ID;
+let mentesTimeout = null;
+
+function mentes() {
+  // localStorage backup
+  try { localStorage.setItem('gyogyszer_v1', JSON.stringify(gyogyszerek)); } catch(e) {}
+  try { localStorage.setItem('leletek_v1', JSON.stringify(leletek)); } catch(e) {}
+  try { localStorage.setItem('vizsgalatok_v1', JSON.stringify(vizsgalatok)); } catch(e) {}
+  try { localStorage.setItem('profil_v1', JSON.stringify(profil)); } catch(e) {}
+  // JSONBin mentés debounce 1mp
+  clearTimeout(mentesTimeout);
+  mentesTimeout = setTimeout(async () => {
+    try {
+      await fetch(JSONBIN_URL, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Master-Key': JSONBIN_KEY,
+          'X-Bin-Versioning': 'false'
+        },
+        body: JSON.stringify({ gyogyszerek, leletek, vizsgalatok, profil })
+      });
+    } catch(e) { console.log('JSONBin hiba:', e); }
+  }, 1000);
+}
+function konvertál(m) {
+  // Régi JSX kulcsnevekről átállás az új HTML kulcsnevekre
+  return {
+    id: m.id || String(Date.now()),
+    nev: m.nev || m.name || '',
+    szin: m.szin || m.color || '#0078d4',
+    aktiv: m.aktiv !== undefined ? m.aktiv : (m.active !== undefined ? m.active : true),
+    adagolas: m.adagolas || m.dosage || '',
+    egyseg: m.egyseg || m.unit || 'mg',
+    freq: m.freq || '',
+    kezdes: m.kezdes || m.startDate || '',
+    befejezes: m.befejezes || m.endDate || '',
+    diagnozis: m.diagnozis || m.prescribedFor || '',
+    orvos: m.orvos || m.doctor || '',
+    megjegyzes: m.megjegyzes || m.notes || '',
+    foto: m.foto || m.photo || null,
+  };
+}
+
+async function betoltes() {
+  try {
+    const r = await fetch(JSONBIN_URL + '/latest', {
+      headers: { 'X-Master-Key': JSONBIN_KEY }
+    });
+    if (r.ok) {
+      const data = await r.json();
+      const rec = data.record;
+      if (rec.gyogyszerek && rec.gyogyszerek.length > 0) gyogyszerek = rec.gyogyszerek.map(konvertál);
+      if (rec.leletek && rec.leletek.length > 0) leletek = rec.leletek;
+      if (rec.vizsgalatok && rec.vizsgalatok.length > 0) vizsgalatok = rec.vizsgalatok;
+      if (rec.profil) profil = rec.profil;
+      return;
+    }
+  } catch(e) { console.log('JSONBin betöltés sikertelen, localStorage fallback:', e); }
+  // Fallback: localStorage
+  try { const m = localStorage.getItem('gyogyszer_v1'); if (m) gyogyszerek = JSON.parse(m).map(konvertál); } catch(e) {}
+  try { const d = localStorage.getItem('leletek_v1'); if (d) leletek = JSON.parse(d); } catch(e) {}
+  try { const v = localStorage.getItem('vizsgalatok_v1'); if (v) vizsgalatok = JSON.parse(v); } catch(e) {}
+  try { const p = localStorage.getItem('profil_v1'); if (p) profil = JSON.parse(p); } catch(e) {}
+}
+
+// ── Cloudinary ───────────────────────────────────────────────────────────────
+const CLOUDINARY_CLOUD = "dt26tabzo";
+const CLOUDINARY_PRESET = "ygtsvr6a";
+const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/" + CLOUDINARY_CLOUD + "/upload";
+
+async function cloudinaryFeltolt(base64Data, fajlnev, tipus) {
+  // base64Data: "data:application/pdf;base64,..." formátum
+  const formData = new FormData();
+  formData.append('file', base64Data);
+  formData.append('upload_preset', CLOUDINARY_PRESET);
+  formData.append('public_id', 'healthdiary/' + Date.now() + '_' + fajlnev.replace(/[^a-zA-Z0-9]/g, '_'));
+  formData.append('resource_type', tipus === 'application/pdf' ? 'raw' : 'image');
+  
+  const endpoint = tipus === 'application/pdf' ? CLOUDINARY_URL.replace('/upload', '/raw/upload') : CLOUDINARY_URL;
+  const r = await fetch(endpoint, {
+    method: 'POST',
+    body: formData
+  });
+  if (!r.ok) throw new Error('Cloudinary feltöltés sikertelen: ' + r.status);
+  const data = await r.json();
+  return data.secure_url;
+}
+
+// ── DB keresés ────────────────────────────────────────────────────────────
+function keresDB(nev) {
+  if (!nev || nev.trim().length < 2) return null;
+  const q = nev.trim().toLowerCase();
+  return DB.find(d => d.n.some(n => q === n || q.includes(n) || n.includes(q))) || null;
+}
+
+function infoPanelHTML(info) {
+  if (!info) return '';
+  return `
+    <div class="info-panel">
+      <div class="info-cim">💊 Gyógyszerinfó</div>
+      <div class="info-sor"><div class="info-sor-cim">HATÓANYAG / CSOPORT</div><div class="info-sor-ertek">${info.h}</div></div>
+      <div class="info-sor"><div class="info-sor-cim">MIRE VALÓ</div><div class="info-sor-ertek">${info.m}</div></div>
+      ${info.me && info.me.length ? `<div class="info-sor"><div class="info-sor-cim">FŐBB MELLÉKHATÁSOK</div><div class="mellekhat-lista">${info.me.map(m=>`<span class="mellekhat-badge">${m}</span>`).join('')}</div></div>` : ''}
+      ${info.f ? `<div class="figyelmeztet">⚠ ${info.f}</div>` : ''}
+      <div class="info-lablec">Tájékoztató jellegű. Orvosával mindig egyeztessen.</div>
+    </div>`;
+}
+
+// ── Nézet váltás ──────────────────────────────────────────────────────────
+function dashboardFrissit() {
+  // Sync hidden stat elements used by other functions
+  const setEl = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  setEl('stat-osszes', gyogyszerek.length);
+  setEl('stat-aktiv', gyogyszerek.filter(m => m.aktiv).length);
+  setEl('stat-befejezett', gyogyszerek.filter(m => !m.aktiv).length);
+  setEl('vizsgalat-szam', vizsgalatok.length);
+  setEl('lelet-szam', leletek.length);
+  const aktiv = medicines => medicines.filter(m => m.aktiv).length;
+  document.getElementById('dash-osszes').textContent = gyogyszerek.length;
+  document.getElementById('dash-aktiv').textContent = gyogyszerek.filter(m => m.aktiv).length;
+  document.getElementById('dash-befejezett').textContent = gyogyszerek.filter(m => !m.aktiv).length;
+  document.getElementById('dash-vizsgalat').textContent = vizsgalatok.length;
+  document.getElementById('dash-lelet').textContent = leletek.length;
+
+  // Utolsó vizsgálat
+  if (vizsgalatok.length > 0) {
+    const utolso = [...vizsgalatok].sort((a,b) => b.datum.localeCompare(a.datum))[0];
+    document.getElementById('dash-utolso-vizsgalat').textContent = 'Utolsó: ' + utolso.szakorvos + ' – ' + fmtDate(utolso.datum);
+  }
+
+  // Utolsó lelet + gyors elemzés panel
+  if (leletek.length > 0) {
+    const utolso = [...leletek].sort((a,b) => (b.datum||'').localeCompare(a.datum||''))[0];
+    document.getElementById('dash-utolso-lelet').textContent = 'Utolsó: ' + utolso.nev + ' – ' + fmtDate(utolso.datum);
+    const utolsoPdf = [...leletek]
+      .sort((a,b) => (b.datum||'').localeCompare(a.datum||''))
+      .find(l => l.fajl && l.fajl.type === 'application/pdf');
+    const panel = document.getElementById('dash-elemzes-panel');
+    if (utolsoPdf && panel) {
+      panel.style.display = 'block';
+      document.getElementById('dash-elemzes-nev').textContent = '\u{1F4C4} ' + utolsoPdf.nev + ' \u00B7 ' + fmtDate(utolsoPdf.datum);
+      if (utolsoPdf.ertekek && utolsoPdf.ertekek.length > 0) {
+        dashElemzesMutat(utolsoPdf.ertekek);
+        document.getElementById('dash-elemzes-gomb').textContent = '\u{1F504} Újraelemzés';
+      }
+      panel._leletId = utolsoPdf.id;
+    } else if (panel) {
+      panel.style.display = 'none';
+    }
+  }
+
+
+  // Üdvözlés
+  const udv = document.getElementById('profil-udv');
+  if (profil.nev) udv.textContent = 'Üdv, ' + profil.nev.split(' ')[0] + '!';
+  else udv.textContent = '';
+}
+
+function nezetValt(nev) {
+  document.querySelectorAll('.nezet').forEach(n => n.classList.remove('aktiv'));
+  document.getElementById(nev+'-nezet').classList.add('aktiv');
+  if (nev === 'lista') { dashboardFrissit(); }
+  if (nev === 'gyogyszerek') listaFrissit();
+  if (nev === 'leletek') leletekFrissit();
+  if (nev === 'vizsgalatok') { vizsgalatokFrissit(); document.getElementById('v-datum').value = new Date().toISOString().slice(0,10); }
+  if (nev === 'profil') profilBetolt();
+}
+
+// ── Lista nézet ───────────────────────────────────────────────────────────
+function listaFrissit() {
+  const q = (document.getElementById('keres-input')?.value || '').toLowerCase();
+  const filtered = [...gyogyszerek].sort((a,b) => a.nev.localeCompare(b.nev, "hu")).filter(m => {
+    const okA = aktivFilter === 'all' || (aktivFilter === 'active' ? m.aktiv : !m.aktiv);
+    const okS = !q || m.nev.toLowerCase().includes(q) || (m.diagnozis||'').toLowerCase().includes(q);
+    return okA && okS;
+  });
+
+  const aktiv = gyogyszerek.filter(m => m.aktiv).length;
+  const se = (id, v) => { const el = document.getElementById(id); if(el) el.textContent = v; };
+  se('stat-osszes', gyogyszerek.length);
+  se('stat-aktiv', aktiv);
+  se('stat-befejezett', gyogyszerek.length - aktiv);
+  se('lelet-szam', leletek.length);
+  se('dash-osszes', gyogyszerek.length);
+  se('dash-aktiv', aktiv);
+  se('dash-befejezett', gyogyszerek.length - aktiv);
+
+  const t = document.getElementById('lista-tartalom');
+  if (filtered.length === 0) {
+    t.innerHTML = `<div class="ures-lista">${gyogyszerek.length === 0 ? 'Adj hozzá gyógyszert a + gombbal.' : 'Nincs találat.'}</div>`;
+    return;
+  }
+  t.innerHTML = '<div style="padding:10px 12px 0">' + filtered.map(m => `
+    <div class="med-card" onclick="detailMegnyit('${m.id}')">
+      <div class="med-szin-csik" style="background:${m.szin}"></div>
+      <div class="med-tartalom">
+        <div class="med-fejlec">
+          <div class="med-ikon" style="background:${m.szin}22">💊</div>
+          <div style="min-width:0">
+            <div class="med-nev">${m.nev}</div>
+            <div class="med-adag">${m.adagolas||''} ${m.egyseg||''} · ${m.freq||''}</div>
+          </div>
+        </div>
+        ${m.diagnozis ? `<div class="med-diagnozis">🩺 ${m.diagnozis}</div>` : ''}
+        <div class="med-badge-sor">
+          <span class="badge ${m.aktiv ? 'badge-aktiv' : 'badge-befejezett'}">${m.aktiv ? 'Aktív' : 'Befejezett'}</span>
+          <span class="med-datum">${fmtDate(m.kezdes)}</span>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding-right:8px">
+        <div style="color:#aaa;font-size:20px">›</div>
+        <button onclick="event.stopPropagation();lijstaTorol('${m.id}')" style="background:none;border:none;color:#e03050;font-size:18px;cursor:pointer;padding:4px;line-height:1">🗑</button>
+      </div>
+    </div>`).join('') + '</div>';
+}
+
+function filterVallt(f) {
+  aktivFilter = f;
+  document.querySelectorAll('.filter-gomb').forEach(b => b.classList.remove('aktiv'));
+  document.getElementById('filter-'+f).classList.add('aktiv');
+  listaFrissit();
+}
+
+// ── Form nézet ────────────────────────────────────────────────────────────
+function ujGyogyszer() {
+  szerkesztettId = null;
+  formAktiv = true;
+  formSzin = SZINEK[0];
+  fotoAdat = null;
+  document.getElementById('form-cim').textContent = 'Új gyógyszer';
+  document.getElementById('torol-gomb').style.display = 'none';
+  document.getElementById('f-nev').value = '';
+  document.getElementById('f-adagolas').value = '';
+  document.getElementById('f-egyseg').value = 'mg';
+  document.getElementById('f-freq').value = 'Naponta 1x';
+  document.getElementById('f-kezdes').value = new Date().toISOString().slice(0,10);
+  document.getElementById('f-befejezes').value = '';
+  document.getElementById('f-diagnozis').value = '';
+  document.getElementById('f-orvos').value = '';
+  document.getElementById('f-megjegyzes').value = '';
+  document.getElementById('info-panel-wrap').innerHTML = '';
+  document.getElementById('foto-elovilag-wrap').innerHTML = '';
+  szinValasztoFrissit();
+  toggleFrissit();
+  nezetValt('form');
+}
+
+function szerkesztesNyit(id) {
+  const m = gyogyszerek.find(x => x.id === id);
+  if (!m) return;
+  szerkesztettId = id;
+  formAktiv = m.aktiv;
+  formSzin = m.szin;
+  fotoAdat = m.foto || null;
+  document.getElementById('form-cim').textContent = 'Szerkesztés';
+  document.getElementById('torol-gomb').style.display = 'block';
+  document.getElementById('f-nev').value = m.nev;
+  document.getElementById('f-adagolas').value = m.adagolas || '';
+  document.getElementById('f-egyseg').value = m.egyseg || 'mg';
+  document.getElementById('f-freq').value = m.freq || 'Naponta 1x';
+  document.getElementById('f-kezdes').value = m.kezdes || '';
+  document.getElementById('f-befejezes').value = m.befejezes || '';
+  document.getElementById('f-diagnozis').value = m.diagnozis || '';
+  document.getElementById('f-orvos').value = m.orvos || '';
+  document.getElementById('f-megjegyzes').value = m.megjegyzes || '';
+  nevValtozas();
+  szinValasztoFrissit();
+  toggleFrissit();
+  fotoElovilagFrissit();
+  nezetValt('form');
+}
+
+function szinValasztoFrissit() {
+  document.getElementById('szin-valaszto').innerHTML = SZINEK.map(c =>
+    `<div class="szin-gomb ${c===formSzin?'kivalasztott':''}" style="background:${c}" onclick="szinValaszt('${c}')"></div>`
+  ).join('');
+}
+
+function szinValaszt(c) {
+  formSzin = c;
+  szinValasztoFrissit();
+}
+
+function toggleAktiv() {
+  formAktiv = !formAktiv;
+  toggleFrissit();
+}
+
+function toggleFrissit() {
+  const t = document.getElementById('aktiv-toggle');
+  t.classList.toggle('be', formAktiv);
+}
+
+let apiKeres_controller = null;
+
+async function apiKeres(nev) {
+  const wrap = document.getElementById('info-panel-wrap');
+  if (apiKeres_controller) apiKeres_controller.abort();
+  apiKeres_controller = new AbortController();
+
+  wrap.innerHTML = `<div class="info-panel" style="display:flex;align-items:center;gap:10px;font-size:15px;color:#005a9e">
+    <div style="width:18px;height:18px;border:2px solid #cfe2f7;border-top:2px solid #0078d4;border-radius:50%;animation:spin 0.8s linear infinite;flex-shrink:0"></div>
+    Keresés az interneten...
+    <button onclick="apiMegse()" style="margin-left:auto;background:#fff0f0;color:#e03050;border:1px solid #fcc;border-radius:4px;padding:3px 10px;cursor:pointer;font-size:13px;font-family:inherit">✕ Mégse</button>
+  </div>
+  <style>@keyframes spin{to{transform:rotate(360deg)}}</style>`;
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      signal: apiKeres_controller.signal,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 600,
+        system: `Magyar gyógyszerészeti szakértő vagy. A megadott gyógyszer nevéhez adj meg adatokat CSAK valid JSON formátumban, semmi más szöveg:
+{"h":"hatóanyag és gyógyszercsoport","m":"mire alkalmazzák","me":["mellékhatás1","mellékhatás2","mellékhatás3"],"f":"fontos figyelmeztetés"}
+Ha nem ismered: {"ismeretlen":true}
+Magyarul válaszolj.`,
+        messages: [{ role: 'user', content: nev }]
+      })
+    });
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    const data = await resp.json();
+    const text = (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('');
+    const match = text.match(/\{[\s\S]*\}/);
+    if (!match) throw new Error('Nem értelmezhető válasz');
+    const info = JSON.parse(match[0]);
+    if (info.ismeretlen) {
+      wrap.innerHTML = `<div class="nem-talalt">⚠ ${nev} nem található. Kérdezze meg orvosát vagy gyógyszerészét.</div>`;
+    } else {
+      wrap.innerHTML = infoPanelHTML(info);
+    }
+  } catch(e) {
+    if (e.name === 'AbortError') return;
+    wrap.innerHTML = `<div class="nem-talalt">⚠ Nem sikerült a lekérdezés. Ellenőrizd az internetkapcsolatot.
+      <button onclick="apiKeres('${nev}')" style="margin-left:8px;background:#0078d4;color:#fff;border:none;border-radius:4px;padding:3px 10px;cursor:pointer;font-size:13px;font-family:inherit">Újra</button>
+    </div>`;
+  }
+}
+
+function apiKeresDetail(nev) {
+  const wrap = document.getElementById('detail-info-panel');
+  wrap.innerHTML = `<div class="info-panel" style="display:flex;align-items:center;gap:10px;font-size:15px;color:#005a9e">
+    <div style="width:18px;height:18px;border:2px solid #cfe2f7;border-top:2px solid #0078d4;border-radius:50%;animation:spin 0.8s linear infinite;flex-shrink:0"></div>
+    Keresés...
+  </div>`;
+  fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 600,
+      system: 'Magyar gyógyszerészeti szakértő vagy. Adj adatokat CSAK valid JSON-ben: {"h":"hatóanyag","m":"mire való","me":["mellékhatás1","mellékhatás2"],"f":"figyelmeztetés"} Ha nem ismered: {"ismeretlen":true}',
+      messages: [{ role: 'user', content: nev }]
+    })
+  }).then(r => r.json()).then(data => {
+    const text = (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('');
+    const match = text.match(/\{[\s\S]*\}/);
+    if (!match) throw new Error();
+    const info = JSON.parse(match[0]);
+    wrap.innerHTML = info.ismeretlen
+      ? `<div class="nem-talalt">⚠ ${nev} nem található az interneten sem.</div>`
+      : infoPanelHTML(info);
+  }).catch(() => {
+    wrap.innerHTML = `<div class="nem-talalt">⚠ Nem sikerült. Ellenőrizd az internetkapcsolatot.</div>`;
+  });
+}
+
+function apiMegse() {
+  if (apiKeres_controller) apiKeres_controller.abort();
+  const nev = document.getElementById('f-nev').value;
+  nevValtozas_alap(nev);
+}
+
+function nevValtozas_alap(nev) {
+  const info = keresDB(nev);
+  const wrap = document.getElementById('info-panel-wrap');
+  if (nev.trim().length < 2) { wrap.innerHTML = ''; return; }
+  if (info) {
+    wrap.innerHTML = infoPanelHTML(info);
+  } else {
+    wrap.innerHTML = `<div class="nem-talalt">
+      ⚠ <strong>${nev}</strong> nincs a helyi adatbázisban.
+      <button onclick="apiKeres('${nev.replace(/'/g,"\'")}')" style="display:block;margin-top:8px;background:linear-gradient(135deg,#0078d4,#005a9e);color:#fff;border:none;border-radius:4px;padding:7px 14px;cursor:pointer;font-size:14px;font-family:inherit;width:100%">
+        🌐 Keresés az interneten
+      </button>
+    </div>`;
+  }
+}
+
+function nevValtozas() {
+  const nev = document.getElementById('f-nev').value;
+  nevValtozas_alap(nev);
+}
+
+function befejezesValtozas() {
+  const d = document.getElementById('f-befejezes').value;
+  const k = document.getElementById('f-kezdes').value;
+  const ma = new Date().toISOString().slice(0,10);
+
+  // Ha a befejezés korábbi mint a kezdés, állítsuk a kezdést egy nappal korábbra
+  if (d && k && d < k) {
+    const uj = new Date(d);
+    uj.setDate(uj.getDate() - 1);
+    document.getElementById('f-kezdes').value = uj.toISOString().slice(0,10);
+  }
+
+  if (d && d < ma) {
+    formAktiv = false;
+    toggleFrissit();
+  } else if (d && d >= ma) {
+    formAktiv = true;
+    toggleFrissit();
+  }
+}
+
+function kezdesDatumEllenor() {
+  const k = document.getElementById('f-kezdes').value;
+  const d = document.getElementById('f-befejezes').value;
+  // Ha a kezdés később mint a befejezés, állítsuk a befejezést egy nappal későbbre
+  if (k && d && k > d) {
+    const uj = new Date(k);
+    uj.setDate(uj.getDate() + 1);
+    document.getElementById('f-befejezes').value = uj.toISOString().slice(0,10);
+  }
+}
+
+function fotoFeltolt(input) {
+  const f = input.files[0];
+  if (!f) return;
+  const wrap = document.getElementById('foto-elovilag-wrap');
+  wrap.innerHTML = '<div style="color:#0078d4;font-size:13px;padding:6px">⏳ Feltöltés folyamatban...</div>';
+  
+  const reader = new FileReader();
+  reader.onload = async e => {
+    try {
+      // Tömörítés canvas-szal
+      const img = new Image();
+      img.onload = async () => {
+        const canvas = document.createElement('canvas');
+        const MAX = 800;
+        let w = img.width, h = img.height;
+        if (w > h && w > MAX) { h = h * MAX / w; w = MAX; }
+        else if (h > MAX) { w = w * MAX / h; h = MAX; }
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        const compressed = canvas.toDataURL('image/jpeg', 0.8);
+        try {
+          const url = await cloudinaryFeltolt(compressed, f.name, 'image/jpeg');
+          fotoAdat = url;
+          fotoElovilagFrissit();
+        } catch(err) {
+          // Fallback: localStorage
+          fotoAdat = compressed;
+          fotoElovilagFrissit();
+        }
+      };
+      img.src = e.target.result;
+    } catch(err) {
+      console.log('Foto hiba:', err);
+    }
+  };
+  reader.readAsDataURL(f);
+}
+
+function fotoElovilagFrissit() {
+  const wrap = document.getElementById('foto-elovilag-wrap');
+  wrap.innerHTML = fotoAdat
+    ? `<img src="${fotoAdat}" class="foto-elovilag"><button class="foto-torol" onclick="fotoTorol()">✕ Fénykép törlése</button>`
+    : '';
+}
+
+function fotoTorol() { fotoAdat = null; fotoElovilagFrissit(); }
+
+function gyogyszerMent() {
+  const nev = document.getElementById('f-nev').value.trim();
+  if (!nev) { alert('Add meg a gyógyszer nevét!'); return; }
+  const m = {
+    id: szerkesztettId || String(Date.now()),
+    nev, szin: formSzin, aktiv: formAktiv,
+    adagolas: document.getElementById('f-adagolas').value,
+    egyseg: document.getElementById('f-egyseg').value,
+    freq: document.getElementById('f-freq').value,
+    kezdes: document.getElementById('f-kezdes').value,
+    befejezes: document.getElementById('f-befejezes').value,
+    diagnozis: document.getElementById('f-diagnozis').value,
+    orvos: document.getElementById('f-orvos').value,
+    megjegyzes: document.getElementById('f-megjegyzes').value,
+    foto: fotoAdat,
+  };
+  if (szerkesztettId) {
+    gyogyszerek = gyogyszerek.map(x => x.id === szerkesztettId ? m : x);
+  } else {
+    gyogyszerek.unshift(m);
+  }
+  mentes();
+  nezetValt('gyogyszerek');
+}
+
+function lijstaTorol(id) {
+  gyogyszerek = gyogyszerek.filter(m => m.id !== id);
+  mentes();
+  listaFrissit();
+  dashboardFrissit();
+}
+
+function gyogyszerTorol() {
+  if (!confirm('Biztosan törlöd ezt a gyógyszert?')) return;
+  gyogyszerek = gyogyszerek.filter(m => m.id !== szerkesztettId);
+  mentes();
+  nezetValt('gyogyszerek');
+}
+
+function formVissza() {
+  nezetValt(szerkesztettId ? 'detail' : 'gyogyszerek');
+  if (szerkesztettId) detailMegnyit(szerkesztettId);
+}
+
+// ── Detail nézet ──────────────────────────────────────────────────────────
+function detailMegnyit(id) {
+  const m = gyogyszerek.find(x => x.id === id);
+  if (!m) return;
+  szerkesztettId = id;
+
+  document.getElementById('detail-hero').style.background = m.szin;
+  const ikon = document.getElementById('detail-ikon');
+  if (m.foto) {
+    ikon.innerHTML = `<img src="${m.foto}" style="width:62px;height:62px;object-fit:cover;border-radius:6px;border:2px solid rgba(255,255,255,0.5)">`;
+  } else {
+    ikon.innerHTML = '💊';
+    ikon.style.fontSize = '30px';
+  }
+  document.getElementById('detail-nev').textContent = m.nev;
+  document.getElementById('detail-adag').textContent = `${m.adagolas||''} ${m.egyseg||''} · ${m.freq||''}`;
+  document.getElementById('detail-badge').textContent = m.aktiv ? '✓ Aktív' : 'Befejezett';
+
+  let sorokHTML = '';
+  sorokHTML += `<div class="detail-adat-sor"><span class="detail-adat-cim">Kezdés</span><span class="detail-adat-ertek">${fmtDate(m.kezdes)}</span></div>`;
+  sorokHTML += `<div class="detail-adat-sor"><span class="detail-adat-cim">Befejezés</span><span class="detail-adat-ertek">${m.befejezes ? fmtDate(m.befejezes) : 'Folyamatos'}</span></div>`;
+  if (m.diagnozis) sorokHTML += `<div class="detail-adat-sor"><span class="detail-adat-cim">Felírás oka</span><span class="detail-adat-ertek">${m.diagnozis}</span></div>`;
+  if (m.orvos) sorokHTML += `<div class="detail-adat-sor"><span class="detail-adat-cim">Felíró orvos</span><span class="detail-adat-ertek">${m.orvos}</span></div>`;
+  if (m.freq) sorokHTML += `<div class="detail-adat-sor"><span class="detail-adat-cim">Gyakoriság</span><span class="detail-adat-ertek">${m.freq}</span></div>`;
+  if (m.megjegyzes) sorokHTML += `<div class="detail-adat-sor"><span class="detail-adat-cim">Megjegyzés</span><span class="detail-adat-ertek">${m.megjegyzes}</span></div>`;
+
+  document.getElementById('detail-adatok').innerHTML = sorokHTML;
+
+  const btn = document.getElementById('aktiv-toggle-detail');
+  btn.textContent = m.aktiv ? '⏸ Szedés megállítása' : '▶ Szedés folytatása';
+  btn.style.background = m.aktiv ? '#fff0f0' : '#f0fff4';
+  btn.style.color = m.aktiv ? '#e03050' : '#107c10';
+  btn.style.border = `1px solid ${m.aktiv ? '#fcc' : '#a3d977'}`;
+  btn.className = 'gomb';
+
+  const info = keresDB(m.nev);
+  if (info) {
+    document.getElementById('detail-info-panel').innerHTML = infoPanelHTML(info);
+  } else {
+    document.getElementById('detail-info-panel').innerHTML = `<div class="nem-talalt">
+      ⚠ <strong>${m.nev}</strong> nincs a helyi adatbázisban.
+      <button onclick="apiKeresDetail('${m.nev.replace(/'/g, String.fromCharCode(39))}')" style="display:block;margin-top:8px;background:linear-gradient(135deg,#0078d4,#005a9e);color:#fff;border:none;border-radius:4px;padding:7px 14px;cursor:pointer;font-size:14px;font-family:inherit;width:100%">
+        🌐 Keresés az interneten
+      </button>
+    </div>`;
+  }
+
+  nezetValt('detail');
+}
+
+function detailSzerkeszt() { szerkesztesNyit(szerkesztettId); }
+
+function detailToggleAktiv() {
+  const m = gyogyszerek.find(x => x.id === szerkesztettId);
+  if (!m) return;
+  m.aktiv = !m.aktiv;
+  mentes();
+  detailMegnyit(szerkesztettId);
+}
+
+// ── Leletek nézet ─────────────────────────────────────────────────────────
+function leletFajl(input) {
+  const f = input.files[0];
+  if (!f) return;
+  const wrap = document.getElementById('lelet-elovilag');
+  wrap.innerHTML = '<div style="color:#0078d4;font-size:13px;padding:6px">⏳ Feltöltés folyamatban...</div>';
+  
+  const reader = new FileReader();
+  reader.onload = async e => {
+    const base64 = e.target.result;
+    try {
+      const url = await cloudinaryFeltolt(base64, f.name, f.type);
+      leletFajlAdat = { url: url, type: f.type, nev: f.name };
+      if (f.type.startsWith('image/')) {
+        wrap.innerHTML = `<img src="${url}" style="width:100%;max-height:120px;object-fit:contain;border-radius:6px;border:1px solid #c0cfe0;margin-bottom:6px;display:block">`;
+      } else {
+        wrap.innerHTML = `<div style="padding:7px 10px;background:#eff6fc;border-radius:4px;border:1px solid #cfe2f7;font-size:13px;color:#0078d4;margin-bottom:6px">📄 ${f.name} – feltöltve ✓</div>`;
+      }
+    } catch(e) {
+      wrap.innerHTML = `<div style="color:#e03050;font-size:13px;padding:6px">⚠ Feltöltés sikertelen. Próbáld újra.</div>`;
+      console.log('Cloudinary hiba:', e);
+    }
+  };
+  reader.readAsDataURL(f);
+}
+
+function leletMent() {
+  const nev = document.getElementById('l-nev').value.trim();
+  if (!nev) { alert('Add meg a lelet nevét!'); return; }
+  const wrap = document.getElementById('lelet-elovilag');
+  if (wrap && wrap.innerHTML.includes('Feltöltés folyamatban')) { alert('Várj, a fájl feltöltése folyamatban van...'); return; }
+  const l = {
+    id: String(Date.now()),
+    nev, datum: document.getElementById('l-datum').value,
+    megjegyzes: document.getElementById('l-megjegyzes').value,
+    fajl: leletFajlAdat,
+  };
+  leletek.unshift(l);
+  mentes();
+  document.getElementById('l-nev').value = '';
+  document.getElementById('l-datum').value = new Date().toISOString().slice(0,10);
+  document.getElementById('l-megjegyzes').value = '';
+  document.getElementById('lelet-elovilag').innerHTML = '';
+  leletFajlAdat = null;
+  leletekFrissit();
+}
+
+function leletTorol(id) {
+  if (!confirm('Biztosan törlöd ezt a leletet?')) return;
+  leletek = leletek.filter(l => l.id !== id);
+  mentes();
+  leletekFrissit();
+}
+
+function leletekFrissit() {
+  try {
+  const lszam = document.getElementById('lelet-szam'); if(lszam) lszam.textContent = leletek.length;
+  const dlelet = document.getElementById('dash-lelet'); if(dlelet) dlelet.textContent = leletek.length;
+  const t = document.getElementById('leletek-lista');
+  if (leletek.length === 0) {
+    t.innerHTML = '<div class="ures-lista">Még nincs feltöltött lelet.</div>';
+    return;
+  }
+  t.innerHTML = leletek.map(l => `
+    <div class="lelet-card">
+      <div class="lelet-fejlec">
+        <div style="font-size:22px;flex-shrink:0">📄</div>
+        <div style="flex:1;min-width:0">
+          <div class="lelet-nev">${l.nev}</div>
+          <div class="lelet-info">${fmtDate(l.datum)}${l.megjegyzes ? ' · ' + l.megjegyzes : ''}</div>
+        </div>
+        <button class="torol-gomb" onclick="leletTorol('${l.id}')">🗑</button>
+      </div>
+      ${l.fajl && l.fajl.type && l.fajl.type.startsWith('image/') ? `<img src="${l.fajl.url || l.fajl.data || ''}" class="lelet-kep">` : ''}
+      ${l.fajl && l.fajl.type === 'application/pdf' ? `
+        <div style="margin-top:8px">
+          <iframe src="${l.fajl.url || l.fajl.data || ''}" style="width:100%;height:400px;border:1px solid #c0cfe0;border-radius:6px"></iframe>
+          <a href="${l.fajl.url || l.fajl.data || ''}" target="_blank" class="pdf-link">⬇ PDF megnyitása</a>
+          <button onclick="leletElemez('${l.id}')" style="display:block;width:100%;margin-top:8px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:var(--radius-sm);padding:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">🔬 Laborértékek elemzése</button>
+          <div id="elemzes-${l.id}" style="margin-top:10px"></div>
+        </div>` : ''}
+    </div>`).join('');
+  } catch(e) { console.log('leletekFrissit hiba:', e); }
+}
+
+// ── Segédfüggvények ───────────────────────────────────────────────────────
+function fmtDate(d) {
+  if (!d) return '–';
+  try { return new Date(d).toLocaleDateString('hu-HU'); } catch(e) { return d; }
+}
+
+// ── Vizsgálatok ──────────────────────────────────────────────────────────────
+let vizsgalatErtekeles = 0;
+
+const csillagSzovegek = ['','😞 Nem ajánlom','😐 Átlagos','🙂 Megfelelő','😊 Jó','🤩 Kiváló!'];
+
+function csillagValaszt(n) {
+  vizsgalatErtekeles = n;
+  document.querySelectorAll('.csillag').forEach(cs => {
+    const e = parseInt(cs.dataset.ert);
+    cs.style.opacity = e <= n ? '1' : '0.3';
+  });
+  document.getElementById('csillag-szoveg').textContent = csillagSzovegek[n];
+}
+
+function csillagFrissit(n) {
+  vizsgalatErtekeles = n || 0;
+  document.querySelectorAll('.csillag').forEach(cs => {
+    const e = parseInt(cs.dataset.ert);
+    cs.style.opacity = e <= (n||0) ? '1' : '0.3';
+  });
+  document.getElementById('csillag-szoveg').textContent = n ? csillagSzovegek[n] : '';
+}
+
+function csillagHTML(n) {
+  if (!n) return '';
+  return '⭐'.repeat(n) + ' ' + csillagSzovegek[n];
+}
+
+function vizsgalatokFrissit() {
+  const vszam = document.getElementById('vizsgalat-szam'); if(vszam) vszam.textContent = vizsgalatok.length;
+
+  // Lelet checkbox lista
+  const leletLista = document.getElementById('v-leletek-lista');
+  if (leletek.length === 0) {
+    leletLista.innerHTML = '<div style="font-size:13px;color:#555">Nincs feltöltött lelet.</div>';
+  } else {
+    leletLista.innerHTML = leletek.map(l => `
+      <label style="display:flex;align-items:center;gap:8px;font-size:14px;cursor:pointer;padding:6px 8px;background:#f8fbff;border-radius:5px;border:1px solid #deeffe">
+        <input type="checkbox" value="${l.id}" style="width:16px;height:16px;accent-color:#0078d4">
+        <span>📄 ${l.nev} – ${fmtDate(l.datum)}</span>
+      </label>`).join('');
+  }
+
+  // Vizsgálatok lista
+  const t = document.getElementById('vizsgalatok-lista');
+  if (vizsgalatok.length === 0) {
+    t.innerHTML = '<div class="ures-lista">Még nincs rögzített vizsgálat.</div>';
+    return;
+  }
+  t.innerHTML = vizsgalatok.map(v => `
+    <div style="background:#fff;border-radius:6px;padding:12px;margin-bottom:8px;box-shadow:0 1px 4px rgba(0,0,0,0.08);border:1px solid #deeffe;cursor:pointer" onclick="vizsgalatMegnyit('${v.id}')">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="font-weight:700;font-size:16px;color:#1a1a1a">🩺 ${v.szakorvos}</div>
+          <div style="font-size:13px;color:#444;margin-top:2px">${fmtDate(v.datum)}${v.orvos ? ' · ' + v.orvos : ''}</div>
+          ${v.megjegyzes ? `<div style="font-size:13px;color:#0078d4;margin-top:3px;font-style:italic">${v.megjegyzes}</div>` : ''}
+          ${v.ertekeles ? `<div style="font-size:13px;margin-top:3px">${'⭐'.repeat(v.ertekeles)}</div>` : ''}
+          ${v.leletIds && v.leletIds.length > 0 ? `<div style="font-size:12px;color:#107c10;margin-top:4px">📄 ${v.leletIds.length} kapcsolódó lelet</div>` : ''}
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <button onclick="event.stopPropagation();vizsgalatTorol('${v.id}')" style="background:none;border:none;color:#e03050;font-size:18px;cursor:pointer;padding:4px">🗑</button>
+          <span style="color:#aaa;font-size:20px">›</span>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function vizsgalatMent() {
+  const datum = document.getElementById('v-datum').value;
+  const szakorvos = document.getElementById('v-szakorvos').value.trim();
+  if (!datum || !szakorvos) { alert('A dátum és a szakorvos típusa kötelező!'); return; }
+
+  // Kiválasztott leletek
+  const checkboxok = document.querySelectorAll('#v-leletek-lista input[type="checkbox"]:checked');
+  const leletIds = Array.from(checkboxok).map(cb => cb.value);
+
+  const v = {
+    id: vizsgalatSzerkesztettId || String(Date.now()),
+    datum,
+    szakorvos,
+    orvos: document.getElementById('v-orvos').value.trim(),
+    megjegyzes: document.getElementById('v-megjegyzes').value.trim(),
+    ertekeles: vizsgalatErtekeles,
+    leletIds,
+  };
+
+  if (vizsgalatSzerkesztettId) {
+    vizsgalatok = vizsgalatok.map(x => x.id === vizsgalatSzerkesztettId ? v : x);
+  } else {
+    vizsgalatok.unshift(v);
+  }
+  mentes();
+
+  // Reset form
+  vizsgalatSzerkesztettId = null;
+  document.getElementById('v-datum').value = new Date().toISOString().slice(0,10);
+  document.getElementById('v-szakorvos').value = '';
+  document.getElementById('v-orvos').value = '';
+  document.getElementById('v-megjegyzes').value = '';
+  csillagFrissit(0);
+  vizsgalatokFrissit();
+}
+
+function vizsgalatTorol(id) {
+  if (!confirm('Biztosan törlöd ezt a vizsgálatot?')) return;
+  vizsgalatok = vizsgalatok.filter(v => v.id !== id);
+  mentes();
+  vizsgalatokFrissit();
+}
+
+function vizsgalatMegnyit(id) {
+  const v = vizsgalatok.find(x => x.id === id);
+  if (!v) return;
+  vizsgalatSzerkesztettId = id;
+
+  const kapcsolodoLeletek = (v.leletIds || [])
+    .map(lid => leletek.find(l => l.id === lid))
+    .filter(Boolean);
+
+  // Azonos dátumú leletek automatikusan is
+  const datumLeletek = leletek.filter(l => l.datum === v.datum && !v.leletIds?.includes(l.id));
+
+  document.getElementById('vizsgalat-detail-tartalom').innerHTML = `
+    <div class="card" style="margin-top:10px">
+      <div style="background:#0078d4;border-radius:6px;padding:14px;margin-bottom:14px">
+        <div style="font-size:22px;font-weight:700;color:#fff">🩺 ${v.szakorvos}</div>
+        <div style="font-size:14px;color:rgba(255,255,255,0.85);margin-top:4px">${fmtDate(v.datum)}</div>
+      </div>
+      ${v.orvos ? `<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #e8f0f8"><span style="font-size:13px;font-weight:600;color:#444">Orvos neve</span><span style="font-size:15px;color:#1a1a1a">${v.orvos}</span></div>` : ''}
+      ${v.ertekeles ? `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #e8f0f8"><span style="font-size:13px;font-weight:600;color:#444">Értékelés</span><span style="font-size:15px">${'⭐'.repeat(v.ertekeles)} ${csillagSzovegek[v.ertekeles]}</span></div>` : ''}
+      ${v.megjegyzes ? `<div style="padding:8px 0;border-bottom:1px solid #e8f0f8"><div style="font-size:13px;font-weight:600;color:#444;margin-bottom:4px">Megjegyzés / diagnózis</div><div style="font-size:15px;color:#1a1a1a;line-height:1.5">${v.megjegyzes}</div></div>` : ''}
+      
+      ${kapcsolodoLeletek.length > 0 ? `
+        <div style="margin-top:12px">
+          <div style="font-size:13px;font-weight:700;color:#005a9e;margin-bottom:8px">📄 Kapcsolódó leletek</div>
+          ${kapcsolodoLeletek.map(l => `
+            <div style="background:#eff6fc;border-radius:5px;padding:8px 10px;margin-bottom:6px;border:1px solid #cfe2f7">
+              <div style="font-weight:600;font-size:14px">${l.nev}</div>
+              <div style="font-size:12px;color:#555">${fmtDate(l.datum)}${l.megjegyzes ? ' · ' + l.megjegyzes : ''}</div>
+              ${l.fajl && l.fajl.type && l.fajl.type.startsWith('image/') ? `<img src="${l.fajl.data}" style="width:100%;max-height:150px;object-fit:contain;border-radius:5px;margin-top:6px">` : ''}
+              ${l.fajl && l.fajl.type === 'application/pdf' ? `<iframe src="${l.fajl.data}" style="width:100%;height:300px;border:1px solid #cfe2f7;border-radius:5px;margin-top:6px"></iframe>` : ''}
+            </div>`).join('')}
+        </div>` : ''}
+
+      ${datumLeletek.length > 0 ? `
+        <div style="margin-top:12px">
+          <div style="font-size:13px;font-weight:700;color:#107c10;margin-bottom:8px">📄 Azonos napon feltöltött leletek</div>
+          ${datumLeletek.map(l => `
+            <div style="background:#f0fff4;border-radius:5px;padding:8px 10px;margin-bottom:6px;border:1px solid #a3d977">
+              <div style="font-weight:600;font-size:14px">${l.nev}</div>
+              <div style="font-size:12px;color:#555">${fmtDate(l.datum)}${l.megjegyzes ? ' · ' + l.megjegyzes : ''}</div>
+              ${l.fajl && l.fajl.type && l.fajl.type.startsWith('image/') ? `<img src="${l.fajl.data}" style="width:100%;max-height:150px;object-fit:contain;border-radius:5px;margin-top:6px">` : ''}
+              ${l.fajl && l.fajl.type === 'application/pdf' ? `<iframe src="${l.fajl.data}" style="width:100%;height:300px;border:1px solid #a3d977;border-radius:5px;margin-top:6px"></iframe>` : ''}
+            </div>`).join('')}
+        </div>` : ''}
+    </div>`;
+
+  nezetValt('vizsgalat-detail');
+}
+
+function vizsgalatSzerkeszt() {
+  const v = vizsgalatok.find(x => x.id === vizsgalatSzerkesztettId);
+  if (!v) return;
+  nezetValt('vizsgalatok');
+  document.getElementById('v-datum').value = v.datum;
+  document.getElementById('v-szakorvos').value = v.szakorvos;
+  document.getElementById('v-orvos').value = v.orvos || '';
+  document.getElementById('v-megjegyzes').value = v.megjegyzes || '';
+  csillagFrissit(v.ertekeles || 0);
+  // Tick the right checkboxes after frissit rendered them
+  setTimeout(() => {
+    document.querySelectorAll('#v-leletek-lista input[type="checkbox"]').forEach(cb => {
+      cb.checked = (v.leletIds || []).includes(cb.value);
+    });
+  }, 50);
+}
+
+// ── Profil ───────────────────────────────────────────────────────────────────
+function profilBetolt() {
+  document.getElementById('p-nev').value = profil.nev || '';
+  document.getElementById('p-szuletesi').value = profil.szuletesi || '';
+  document.getElementById('p-nem').value = profil.nem || '';
+  document.getElementById('p-vercsoport').value = profil.vercsoport || '';
+  document.getElementById('p-taj').value = profil.taj || '';
+  betegsegekFrissit();
+  profilOsszefoglalas();
+}
+
+function profilMent() {
+  profil.nev = document.getElementById('p-nev').value.trim();
+  profil.szuletesi = document.getElementById('p-szuletesi').value;
+  profil.nem = document.getElementById('p-nem').value;
+  profil.vercsoport = document.getElementById('p-vercsoport').value;
+  profil.taj = document.getElementById('p-taj').value.trim();
+  mentes();
+  profilOsszefoglalas();
+  // Visszajelzés
+  const btn = document.querySelector('#profil-nezet .topbar-jobb');
+  btn.textContent = '✓ Mentve';
+  setTimeout(() => btn.textContent = 'Mentés', 1500);
+}
+
+function betegsegHozzaad() {
+  const input = document.getElementById('p-uj-betegseg');
+  const val = input.value.trim();
+  if (!val) return;
+  if (!profil.betegsegek) profil.betegsegek = [];
+  profil.betegsegek.push(val);
+  input.value = '';
+  mentes();
+  betegsegekFrissit();
+  profilOsszefoglalas();
+}
+
+function betegsegTorol(i) {
+  profil.betegsegek.splice(i, 1);
+  mentes();
+  betegsegekFrissit();
+  profilOsszefoglalas();
+}
+
+function betegsegekFrissit() {
+  const lista = document.getElementById('p-betegsegek-lista');
+  if (!profil.betegsegek || profil.betegsegek.length === 0) {
+    lista.innerHTML = '<div style="font-size:13px;color:#555">Nincs rögzített krónikus betegség.</div>';
+    return;
+  }
+  lista.innerHTML = profil.betegsegek.map((b, i) => `
+    <div style="display:flex;align-items:center;justify-content:space-between;background:#eff6fc;border-radius:5px;padding:8px 10px;border:1px solid #cfe2f7">
+      <span style="font-size:14px;color:#1a1a1a">${b}</span>
+      <button onclick="betegsegTorol(${i})" style="background:none;border:none;color:#e03050;font-size:16px;cursor:pointer;padding:0 4px">✕</button>
+    </div>`).join('');
+}
+
+function profilOsszefoglalas() {
+  const wrap = document.getElementById('profil-osszefoglalas');
+  const tartalom = document.getElementById('profil-osszefoglalas-tartalom');
+  const vanAdat = profil.nev || profil.vercsoport || profil.betegsegek?.length > 0;
+  if (!vanAdat) { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'block';
+
+  const kor = profil.szuletesi ? Math.floor((new Date() - new Date(profil.szuletesi)) / (365.25 * 24 * 3600 * 1000)) + ' év' : '';
+
+  tartalom.innerHTML = `
+    <div style="background:#f8fbff;border-radius:6px;padding:12px;border:1px solid #deeffe;font-size:14px;line-height:2">
+      ${profil.nev ? `<div><strong>Név:</strong> ${profil.nev}</div>` : ''}
+      ${profil.szuletesi ? `<div><strong>Születési dátum:</strong> ${fmtDate(profil.szuletesi)}${kor ? ' (' + kor + ')' : ''}</div>` : ''}
+      ${profil.nem ? `<div><strong>Nem:</strong> ${profil.nem}</div>` : ''}
+      ${profil.vercsoport ? `<div><strong>Vércsoport:</strong> ${profil.vercsoport}</div>` : ''}
+      ${profil.taj ? `<div><strong>TAJ szám:</strong> ${profil.taj}</div>` : ''}
+      ${profil.betegsegek?.length > 0 ? `<div><strong>Krónikus betegségek:</strong> ${profil.betegsegek.join(', ')}</div>` : ''}
+      <div style="font-size:11px;color:#555;margin-top:8px;font-style:italic">Ezt az összefoglalót megmutathatja orvosának.</div>
+    </div>`;
+}
+
+// ── Dashboard gyors elemzés ───────────────────────────────────────────────────
+
+async function dashElemez() {
+  const panel = document.getElementById('dash-elemzes-panel');
+  const eredmeny = document.getElementById('dash-elemzes-eredmeny');
+  const gomb = document.getElementById('dash-elemzes-gomb');
+  const id = panel._leletId;
+  if (!id) return;
+
+  const l = leletek.find(x => x.id === id);
+  if (!l || !l.fajl) return;
+
+  gomb.disabled = true;
+  gomb.textContent = '⏳ Feldolgozás...';
+  eredmeny.innerHTML = '';
+
+  try {
+    if (typeof pdfjsLib === 'undefined') {
+      eredmeny.innerHTML = '<div style="color:var(--red);font-size:13px">PDF.js nem töltődött be.</div>';
+      return;
+    }
+    const loadingTask = pdfjsLib.getDocument({
+      url: l.fajl.url || l.fajl.data,
+      cMapUrl: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/cmaps/',
+      cMapPacked: true,
+    });
+    const pdf = await loadingTask.promise;
+    let szoveg = '';
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const oldal = await pdf.getPage(i);
+      const tartalom = await oldal.getTextContent();
+      let prevY = null;
+      for (const it of tartalom.items) {
+        const y = it.transform ? Math.round(it.transform[5]) : null;
+        if (prevY !== null && y !== null && Math.abs(y - prevY) > 3) szoveg += '\n';
+        szoveg += it.str + ' ';
+        prevY = y;
+      }
+      szoveg += '\n';
+    }
+    const ertekek = synlabParse(szoveg);
+    if (ertekek.length === 0) {
+      eredmeny.innerHTML = '<div style="color:var(--text2);font-size:13px;font-style:italic">Nem sikerült laborértékeket felismerni.</div>';
+      return;
+    }
+    l.ertekek = ertekek;
+    l.ertekekDatum = l.datum;
+    mentes();
+    dashElemzesMutat(ertekek);
+    gomb.textContent = '\u{1F504} Újraelemzés';
+  } catch(e) {
+    eredmeny.innerHTML = '<div style="color:var(--red);font-size:13px">Hiba: ' + e.message + '</div>';
+  } finally {
+    gomb.disabled = false;
+  }
+}
+
+function dashElemzesMutat(ertekek) {
+  const eredmeny = document.getElementById('dash-elemzes-eredmeny');
+  if (!eredmeny) return;
+
+  const elteresek = ertekek.filter(e =>
+    (e.refMin !== null && e.ertek < e.refMin) ||
+    (e.refMax !== null && e.ertek > e.refMax));
+  const normalis = ertekek.filter(e => !elteresek.includes(e) && (e.refMin !== null || e.refMax !== null));
+
+  let html = '<div style="font-size:12px;color:var(--text2);margin-bottom:8px">' + ertekek.length + ' érték felismerve</div>';
+
+  if (elteresek.length > 0) {
+    html += '<div style="font-size:12px;font-weight:700;color:var(--red);margin-bottom:6px">⚠ Eltérések (' + elteresek.length + '):</div>';
+    elteresek.forEach(e => {
+      const alacsony = e.refMin !== null && e.ertek < e.refMin;
+      const szin = alacsony ? '#3a7bd5' : '#e05c6a';
+      const nyil = alacsony ? '↓' : '↑';
+      html += '<div style="display:flex;justify-content:space-between;background:var(--bg);border-radius:10px;padding:8px 12px;margin-bottom:5px;border-left:3px solid ' + szin + '">';
+      html += '<span style="font-size:13px;color:var(--text)">' + e.nev + '</span>';
+      html += '<span style="font-size:13px;font-weight:700;color:' + szin + '">' + nyil + ' ' + e.ertek + ' ' + (e.egyseg||'') + '</span>';
+      html += '</div>';
+    });
+  }
+
+  if (normalis.length > 0) {
+    html += '<div style="font-size:12px;font-weight:700;color:var(--green);margin:8px 0 5px">✓ Normál (' + normalis.length + ')</div>';
+    html += '<div style="display:flex;flex-wrap:wrap;gap:4px">';
+    normalis.forEach(e => {
+      html += '<span style="background:rgba(76,175,125,0.12);border-radius:20px;padding:3px 10px;font-size:11px;color:var(--green)">' + e.nev + '</span>';
+    });
+    html += '</div>';
+  }
+
+  eredmeny.innerHTML = html;
+}
+
+// ── Lelet elemzés ────────────────────────────────────────────────────────────
+
+async function leletElemez(id) {
+  const l = leletek.find(x => x.id === id);
+  if (!l || !l.fajl) return;
+
+  const wrap = document.getElementById('elemzes-' + id);
+  if (!wrap) return;
+  wrap.innerHTML = '<div style="color:var(--accent);font-size:13px;padding:8px 0">⏳ PDF feldolgozás...</div>';
+
+  try {
+    if (typeof pdfjsLib === 'undefined') {
+      wrap.innerHTML = '<div style="color:var(--red);font-size:13px">PDF.js nem töltődött be. Frissítsd az oldalt.</div>';
+      return;
+    }
+
+    // URL meghatározása – Cloudinary raw fájloknál a direct URL kell
+    const pdfUrl = l.fajl.url || l.fajl.data;
+    if (!pdfUrl) {
+      wrap.innerHTML = '<div style="color:var(--red);font-size:13px">Nincs PDF fájl csatolva.</div>';
+      return;
+    }
+
+    const loadingTask = pdfjsLib.getDocument({
+      url: pdfUrl,
+      cMapUrl: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/cmaps/',
+      cMapPacked: true,
+    });
+    const pdf = await loadingTask.promise;
+
+    let szoveg = '';
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const oldal = await pdf.getPage(i);
+      const tartalom = await oldal.getTextContent();
+      // Sortörés-érzékeny összefűzés: ha a y-koordináta változik, sortörést szúrunk be
+      let prevY = null;
+      for (const it of tartalom.items) {
+        const y = it.transform ? Math.round(it.transform[5]) : null;
+        if (prevY !== null && y !== null && Math.abs(y - prevY) > 3) szoveg += '\n';
+        szoveg += it.str + ' ';
+        prevY = y;
+      }
+      szoveg += '\n';
+    }
+
+    const ertekek = synlabParse(szoveg);
+
+    if (ertekek.length === 0) {
+      wrap.innerHTML = `
+        <div style="color:var(--text2);font-size:13px;font-style:italic;padding:8px 0">
+          Nem sikerült laborértékeket felismerni.<br>
+          <span style="font-size:11px;color:var(--text3)">Ellenőrizd, hogy SYNLAB PDF-et töltöttél-e fel.</span>
+        </div>`;
+      return;
+    }
+
+    l.ertekek = ertekek;
+    l.ertekekDatum = l.datum;
+    mentes();
+    elemzesRajzol(id, ertekek);
+
+  } catch(e) {
+    console.log('Elemzés hiba:', e);
+    wrap.innerHTML = '<div style="color:var(--red);font-size:13px;padding:8px 0">❌ Hiba: ' + e.message + '</div>';
+  }
+}
+
+function synlabParse(szoveg) {
+  // ── SYNLAB PDF parser v2 ──────────────────────────────────────────────────
+  // A PDF.js szövegkinyerés tokeneket ad vissza szóközzel elválasztva,
+  // nem feltétlenül soronként. Két stratégiát alkalmazunk:
+  // 1) Soros regex – ha a sorok jól jönnek ki
+  // 2) Token-ablak – ha az elemek egy hosszú stringbe kerültek
+
+  const eredmenyek = [];
+  const mar = new Set(); // duplikáció-szűrő
+
+  function szamParse(s) { return parseFloat(s.replace(',', '.')); }
+  function push(nev, ertek, refMin, refMax, egyseg) {
+    const k = nev.toLowerCase().replace(/\s+/g, '');
+    if (mar.has(k)) return;
+    if (isNaN(ertek) || nev.length < 3) return;
+    // szűrjük a nyilvánvalóan nem-laborérték sorokat
+    if (/^(vizsgálat|referencia|mértékegység|minős|eredm|kelt|páciens|orvos|labor|synlab|oldal)/i.test(nev)) return;
+    mar.add(k);
+    eredmenyek.push({ nev: nev.trim(), ertek, refMin, refMax, egyseg: egyseg || '' });
+  }
+
+  // ── 1. stratégia: soros feldolgozás ─────────────────────────────────────
+  const sorok = szoveg.split(/[\n\r]+/);
+  for (const sor of sorok) {
+    const s = sor.trim();
+    if (s.length < 5) continue;
+
+    // NÉV (X) ÉRTÉK [+|-|H|L] REF_MIN [-–] REF_MAX EGYSÉG
+    // A minősítési jel (+ - H L ↑ ↓) opcionálisan közbülső token
+    let m = s.match(/^(.+?)\s*\([A-Z0-9]+\)\s+([\d,\.]+)\s*[+\-HL↑↓]?\s*([\d,\.]+)\s*[-–]\s*([\d,\.]+)\s+(\S+)/i);
+    if (m) { push(m[1], szamParse(m[2]), szamParse(m[3]), szamParse(m[4]), m[5]); continue; }
+
+    // NÉV (X) ÉRTÉK [jel] < REF_MAX EGYSÉG
+    m = s.match(/^(.+?)\s*\([A-Z0-9]+\)\s+([\d,\.]+)\s*[+\-HL↑↓]?\s*<\s*([\d,\.]+)\s+(\S+)/i);
+    if (m) { push(m[1], szamParse(m[2]), null, szamParse(m[3]), m[4]); continue; }
+
+    // NÉV (X) ÉRTÉK [jel] > REF_MIN EGYSÉG
+    m = s.match(/^(.+?)\s*\([A-Z0-9]+\)\s+([\d,\.]+)\s*[+\-HL↑↓]?\s*>\s*([\d,\.]+)\s+(\S+)/i);
+    if (m) { push(m[1], szamParse(m[2]), szamParse(m[3]), null, m[4]); continue; }
+
+    // NÉV (X) ÉRTÉK EGYSÉG (csak egység, referencia nélkül)
+    m = s.match(/^(.+?)\s*\([A-Z0-9]+\)\s+([\d,\.]+)\s+([a-zA-Z/%µ][^\s]*)$/);
+    if (m) { push(m[1], szamParse(m[2]), null, null, m[3]); continue; }
+  }
+
+  // ── 2. stratégia: token-ablak (ha kevés eredmény jött) ──────────────────
+  // A PDF.js néha egy nagy szövegfolyamot ad vissza.
+  // Keressük a "(A)" / "(B)" stb. jelölőket, és onnan dolgozunk visszafelé/előre.
+  if (eredmenyek.length < 3) {
+    const tok = szoveg.split(/\s+/);
+    for (let i = 1; i < tok.length - 1; i++) {
+      if (!/^\([A-Z0-9]\)$/i.test(tok[i])) continue;
+
+      // Névtokenek: az (A) előtt visszafelé összegyűjtjük a szöveges tokeneket
+      const nevTok = [];
+      for (let j = i - 1; j >= Math.max(0, i - 8); j--) {
+        if (/^[\d,\.]+$/.test(tok[j]) || /^[+\-HL↑↓<>]$/.test(tok[j])) break;
+        nevTok.unshift(tok[j]);
+      }
+      if (nevTok.length === 0) continue;
+      const nev = nevTok.join(' ');
+
+      // Érték és referencia: az (A) után
+      const utan = tok.slice(i + 1, i + 10);
+
+      // Numerikus tokenek kinyerése
+      const nums = [];
+      let egyseg = '';
+      let vanKisebb = false, vanNagyobb = false;
+      for (const t of utan) {
+        if (t === '<') { vanKisebb = true; continue; }
+        if (t === '>') { vanNagyobb = true; continue; }
+        if (/^[\d,\.]+$/.test(t)) { nums.push(szamParse(t)); continue; }
+        if (/^[-–]$/.test(t)) continue;
+        if (/^[+\-HL↑↓]$/.test(t)) continue;
+        if (!egyseg && /[a-zA-Z%µ\/]/.test(t)) { egyseg = t; break; }
+      }
+
+      if (nums.length === 0) continue;
+      const ertek = nums[0];
+      let refMin = null, refMax = null;
+      if (vanKisebb && nums.length >= 2) refMax = nums[1];
+      else if (vanNagyobb && nums.length >= 2) refMin = nums[1];
+      else if (nums.length >= 3) { refMin = nums[1]; refMax = nums[2]; }
+
+      push(nev, ertek, refMin, refMax, egyseg);
+    }
+  }
+
+  return eredmenyek;
+}
+
+function elemzesRajzol(id, ertekek) {
+  const wrap = document.getElementById('elemzes-' + id);
+  if (!wrap) return;
+
+  const elteresek = ertekek.filter(e => {
+    if (e.refMin !== null && e.ertek < e.refMin) return true;
+    if (e.refMax !== null && e.ertek > e.refMax) return true;
+    return false;
+  });
+
+  const rendben = ertekek.filter(e => {
+    return !elteresek.includes(e) && (e.refMin !== null || e.refMax !== null);
+  });
+
+  let html = '<div style="margin-top:10px">';
+  html += '<div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:12px">Elemzés – ' + ertekek.length + ' érték felismerve</div>';
+
+  if (elteresek.length > 0) {
+    html += '<div style="font-size:13px;font-weight:700;color:var(--red);margin-bottom:8px">Eltérések (' + elteresek.length + '):</div>';
+    elteresek.forEach(e => {
+      const alacsony = e.refMin !== null && e.ertek < e.refMin;
+      const szin = alacsony ? '#3a7bd5' : '#e05c6a';
+      const nyil = alacsony ? '↓' : '↑';
+      html += '<div style="background:var(--bg);border-radius:12px;padding:12px 14px;margin-bottom:8px;border-left:4px solid ' + szin + ';box-shadow:var(--shadow-sm)">';
+      html += '<div style="display:flex;justify-content:space-between;align-items:center">';
+      html += '<span style="font-size:14px;font-weight:600;color:var(--text)">' + e.nev + '</span>';
+      html += '<span style="font-size:14px;font-weight:700;color:' + szin + '">' + nyil + ' ' + e.ertek + ' ' + e.egyseg + '</span>';
+      html += '</div>';
+      if (e.refMin !== null || e.refMax !== null) {
+        html += '<div style="font-size:11px;color:var(--text3);margin-top:3px">Ref: ';
+        if (e.refMin !== null && e.refMax !== null) html += e.refMin + ' – ' + e.refMax;
+        else if (e.refMax !== null) html += '< ' + e.refMax;
+        else html += '> ' + e.refMin;
+        html += ' ' + e.egyseg + '</div>';
+      }
+      html += '</div>';
+    });
+  }
+
+  if (rendben.length > 0) {
+    html += '<div style="font-size:13px;font-weight:700;color:var(--green);margin-bottom:8px">Normál értékek (' + rendben.length + '):</div>';
+    html += '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">';
+    rendben.forEach(e => {
+      html += '<div style="background:rgba(76,175,125,0.12);border-radius:20px;padding:4px 12px;font-size:12px;color:var(--green);font-weight:500">' + e.nev + ': ' + e.ertek + ' ' + e.egyseg + '</div>';
+    });
+    html += '</div>';
+  }
+
+  html += '<div id="grafikon-' + id + '" style="margin-top:8px"></div>';
+  html += '</div>';
+  wrap.innerHTML = html;
+
+  setTimeout(() => grafikonRajzol(id, ertekek), 200);
+}
+
+function grafikonRajzol(id, ujErtekek) {
+  if (typeof Chart === 'undefined') return;
+  const wrap = document.getElementById('grafikon-' + id);
+  if (!wrap) return;
+
+  // ── Összes lelet értékeit időrendben gyűjtjük ─────────────────────────────
+  const idosor = {};
+  leletek.forEach(l => {
+    if (!l.ertekek || !l.datum) return;
+    l.ertekek.forEach(e => {
+      const k = e.nev.toLowerCase().replace(/\s+/g,'');
+      if (!idosor[k]) idosor[k] = {
+        nev: e.nev, egyseg: e.egyseg,
+        refMin: e.refMin, refMax: e.refMax, adatok: []
+      };
+      // refMin/Max frissítése ha korábban null volt
+      if (idosor[k].refMin === null && e.refMin !== null) idosor[k].refMin = e.refMin;
+      if (idosor[k].refMax === null && e.refMax !== null) idosor[k].refMax = e.refMax;
+      idosor[k].adatok.push({ datum: l.datum, ertek: e.ertek });
+    });
+  });
+
+  // Legalább 1 adatponttal rendelkező sorozatok (nem csak > 1), max 12
+  const sorozatok = Object.values(idosor)
+    .filter(s => s.adatok.length >= 1)
+    .sort((a, b) => {
+      // Eltérő értékek előre
+      const aEltero = s => s.adatok.some(d =>
+        (s.refMin !== null && d.ertek < s.refMin) ||
+        (s.refMax !== null && d.ertek > s.refMax));
+      return aEltero(b) - aEltero(a);
+    })
+    .slice(0, 12);
+
+  if (sorozatok.length === 0) return;
+
+  wrap.innerHTML = '<div style="font-size:14px;font-weight:700;color:var(--text);margin:12px 0 10px">📈 Időbeli változások</div>';
+
+  sorozatok.forEach(s => {
+    const rendezett = [...s.adatok].sort((a, b) => a.datum.localeCompare(b.datum));
+
+    const div = document.createElement('div');
+    div.style.cssText = 'background:var(--bg);border-radius:14px;padding:14px;margin-bottom:14px;box-shadow:var(--shadow-in)';
+
+    // Cím sor
+    const cimDiv = document.createElement('div');
+    cimDiv.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:8px';
+    cimDiv.innerHTML = `
+      <span style="font-size:13px;font-weight:700;color:var(--text)">${s.nev}</span>
+      <span style="font-size:11px;color:var(--text3)">${s.egyseg || ''}</span>`;
+    div.appendChild(cimDiv);
+
+    // Referencia sáv info
+    if (s.refMin !== null || s.refMax !== null) {
+      const refDiv = document.createElement('div');
+      refDiv.style.cssText = 'font-size:11px;color:var(--text3);margin-bottom:6px';
+      let refStr = 'Ref: ';
+      if (s.refMin !== null && s.refMax !== null) refStr += `${s.refMin} – ${s.refMax}`;
+      else if (s.refMax !== null) refStr += `< ${s.refMax}`;
+      else refStr += `> ${s.refMin}`;
+      refDiv.textContent = refStr + (s.egyseg ? ' ' + s.egyseg : '');
+      div.appendChild(refDiv);
+    }
+
+    const canvas = document.createElement('canvas');
+    canvas.style.maxHeight = '180px';
+    div.appendChild(canvas);
+    wrap.appendChild(div);
+
+    // Pont színek
+    const pontSzinek = rendezett.map(d => {
+      if (s.refMin !== null && d.ertek < s.refMin) return '#3a7bd5';
+      if (s.refMax !== null && d.ertek > s.refMax) return '#e05c6a';
+      return '#4caf7d';
+    });
+
+    // Y tengely min/max
+    const ertekek = rendezett.map(d => d.ertek);
+    const minErtek = Math.min(...ertekek, s.refMin ?? Infinity);
+    const maxErtek = Math.max(...ertekek, s.refMax ?? -Infinity);
+    const margin = (maxErtek - minErtek) * 0.15 || 1;
+    const yMin = Math.max(0, minErtek - margin);
+    const yMax = maxErtek + margin;
+
+    // Referencia sáv plugin
+    const refSavPlugin = {
+      id: 'refSav_' + s.nev,
+      beforeDraw(chart) {
+        if (s.refMin === null && s.refMax === null) return;
+        const { ctx, chartArea: ca, scales: { y } } = chart;
+        const sMin = s.refMin !== null ? y.getPixelForValue(s.refMin) : ca.bottom;
+        const sMax = s.refMax !== null ? y.getPixelForValue(s.refMax) : ca.top;
+        ctx.save();
+        ctx.fillStyle = 'rgba(76,175,125,0.08)';
+        ctx.fillRect(ca.left, Math.min(sMin, sMax), ca.right - ca.left, Math.abs(sMax - sMin));
+        // Ref vonalak
+        ctx.setLineDash([4, 4]);
+        ctx.strokeStyle = 'rgba(76,175,125,0.4)';
+        ctx.lineWidth = 1;
+        if (s.refMin !== null) {
+          ctx.beginPath(); ctx.moveTo(ca.left, sMin); ctx.lineTo(ca.right, sMin); ctx.stroke();
+        }
+        if (s.refMax !== null) {
+          ctx.beginPath(); ctx.moveTo(ca.left, sMax); ctx.lineTo(ca.right, sMax); ctx.stroke();
+        }
+        ctx.restore();
+      }
+    };
+
+    new Chart(canvas.getContext('2d'), {
+      type: 'line',
+      plugins: [refSavPlugin],
+      data: {
+        labels: rendezett.map(d => fmtDate(d.datum)),
+        datasets: [{
+          label: s.nev + (s.egyseg ? ' (' + s.egyseg + ')' : ''),
+          data: rendezett.map(d => d.ertek),
+          borderColor: '#4a6fa5',
+          backgroundColor: 'rgba(74,111,165,0.06)',
+          borderWidth: 2.5,
+          pointBackgroundColor: pontSzinek,
+          pointBorderColor: '#fff',
+          pointBorderWidth: 2,
+          pointRadius: 7,
+          pointHoverRadius: 9,
+          tension: 0.35,
+          fill: false,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: ctx => {
+                const v = ctx.parsed.y;
+                let txt = `${v} ${s.egyseg || ''}`;
+                if (s.refMin !== null && v < s.refMin) txt += ' ↓ alacsony';
+                else if (s.refMax !== null && v > s.refMax) txt += ' ↑ magas';
+                else if (s.refMin !== null || s.refMax !== null) txt += ' ✓ normál';
+                return txt;
+              }
+            }
+          }
+        },
+        scales: {
+          y: {
+            min: yMin, max: yMax,
+            grid: { color: 'rgba(155,163,192,0.12)' },
+            ticks: { color: '#6b7494', font: { family: 'DM Sans', size: 11 }, maxTicksLimit: 5 }
+          },
+          x: {
+            grid: { color: 'rgba(155,163,192,0.12)' },
+            ticks: { color: '#6b7494', font: { family: 'DM Sans', size: 11 } }
+          }
+        }
+      }
+    });
+  });
+}
+
+
+// ── Inicializálás ─────────────────────────────────────────────────────────
+document.getElementById('l-datum').value = new Date().toISOString().slice(0,10);
+betoltes().then(() => {
+  dashboardFrissit();
+  listaFrissit();
+  leletekFrissit();
+  vizsgalatokFrissit();
+});
+</script>
+</body>
+</html>
